@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -20,7 +21,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    application_status = sa.Enum(
+    application_status = postgresql.ENUM(
         "draft",
         "applied",
         "screening",
@@ -30,6 +31,7 @@ def upgrade() -> None:
         "rejected",
         "withdrawn",
         name="application_status",
+        create_type=False,
     )
     application_status.create(op.get_bind(), checkfirst=True)
 
