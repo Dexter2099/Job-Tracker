@@ -49,6 +49,12 @@ Run tests:
 pytest -v
 ```
 
+Run database migrations:
+
+```powershell
+alembic upgrade head
+```
+
 ## Docker
 
 Run the API and PostgreSQL:
@@ -68,5 +74,30 @@ Expected response:
 ```json
 {
   "status": "ok"
+}
+```
+
+## API Endpoints
+
+### Create Application
+
+```text
+POST /applications
+```
+
+Example request:
+
+```json
+{
+  "company": "Atlassian",
+  "role_title": "Junior Backend Developer",
+  "location": "Sydney",
+  "job_url": "https://example.com/jobs/backend",
+  "status": "applied",
+  "source": "LinkedIn",
+  "salary_range": "$80,000-$95,000",
+  "notes": "Applied after tailoring resume.",
+  "follow_up_date": "2026-06-15",
+  "applied_date": "2026-05-31"
 }
 ```
