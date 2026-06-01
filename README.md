@@ -1,6 +1,12 @@
 # Job Tracker API
 
+[![Tests](https://github.com/Dexter2099/Job-Tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/Dexter2099/Job-Tracker/actions/workflows/tests.yml)
+
 A FastAPI backend for tracking job applications, interview stages, notes, and follow-up dates.
+
+## Overview
+
+Job Tracker API lets a user manage job applications through REST endpoints. The API validates request and response data with Pydantic, persists application data in PostgreSQL through SQLAlchemy models, and manages schema changes with Alembic migrations.
 
 ## Tech Stack
 
@@ -17,11 +23,23 @@ A FastAPI backend for tracking job applications, interview stages, notes, and fo
 - Create, read, update, and delete job applications
 - Track company, role, location, application status, notes, and follow-up date
 - Filter applications by status, company, and follow-up date
-- Store status changes over time
+- Store status changes over time in a status history table
 - Add notes to each application
 - Validate incoming API requests with Pydantic
 - Run automated tests with pytest
 - Run locally with Docker Compose
+
+## Architecture
+
+```text
+Client
+  -> FastAPI route
+  -> Pydantic schema validation
+  -> SQLAlchemy model/session
+  -> PostgreSQL
+```
+
+Alembic tracks database migrations, and GitHub Actions runs the pytest suite on pushes and pull requests.
 
 ## Local Development
 
@@ -63,6 +81,12 @@ Run the API and PostgreSQL:
 docker compose up --build
 ```
 
+Apply migrations after the database is running:
+
+```powershell
+alembic upgrade head
+```
+
 Health check:
 
 ```text
@@ -78,6 +102,15 @@ Expected response:
 ```
 
 ## API Endpoints
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `GET` | `/health` | Check API health |
+| `POST` | `/applications` | Create a job application |
+| `GET` | `/applications` | List job applications |
+| `GET` | `/applications/{id}` | Get one job application |
+| `PATCH` | `/applications/{id}` | Partially update a job application |
+| `DELETE` | `/applications/{id}` | Delete a job application |
 
 ### List Applications
 

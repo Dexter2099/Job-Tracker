@@ -33,18 +33,21 @@ This file tracks the Job Tracker API MVP so the project stays focused.
 - Automatic status history record when application status changes
 - Alembic status-history migration verified against Docker PostgreSQL
 - Focused status-history edge-case tests
+- README API examples polished
+- GitHub Actions workflow test command hardened
 
 ## Current Slice
 
-Status history edge-case coverage:
+README and CI polish:
 
-- No history row for non-status updates
-- No history row when status is unchanged
-- Status history removed when application is deleted
+- Added CI status badge
+- Clarified project architecture
+- Added endpoint summary table
+- Verified tests in a Linux Python container
 
 ## Next
 
-- Polish README examples and GitHub Actions status
+- Confirm latest GitHub Actions run passes after this workflow update
 
 ## Later, Not MVP
 
