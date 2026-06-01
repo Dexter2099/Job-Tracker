@@ -1,12 +1,29 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import JobApplication
+from app.models import ApplicationStatus, JobApplication
 from app.schemas import JobApplicationCreate, JobApplicationRead
 
 
 router = APIRouter(prefix="/applications", tags=["applications"])
+
+
+@router.get("", response_model=list[JobApplicationRead])
+def list_applications(
+    status_filter: ApplicationStatus | None = Query(default=None, alias="status"),
+    company: str | None = None,
+    db: Session = Depends(get_db),
+) -> list[JobApplication]:
+    query = db.query(JobApplication)
+
+    if status_filter is not None:
+        query = query.filter(JobApplication.status == status_filter)
+
+    if company is not None:
+        query = query.filter(JobApplication.company.ilike(f"%{company}%"))
+
+    return query.order_by(JobApplication.id).all()
 
 
 @router.post("", response_model=JobApplicationRead, status_code=status.HTTP_201_CREATED)
@@ -23,3 +40,18 @@ def create_application(
     db.commit()
     db.refresh(db_application)
     return db_application
+
+
+@router.get("/{application_id}", response_model=JobApplicationRead)
+def get_application(
+    application_id: int,
+    db: Session = Depends(get_db),
+) -> JobApplication:
+    application = db.get(JobApplication, application_id)
+    if application is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found",
+        )
+
+    return application

@@ -79,6 +79,25 @@ Expected response:
 
 ## API Endpoints
 
+### List Applications
+
+```text
+GET /applications
+```
+
+Supported filters:
+
+```text
+GET /applications?status=interview
+GET /applications?company=Atlassian
+```
+
+### Get Application
+
+```text
+GET /applications/{id}
+```
+
 ### Create Application
 
 ```text
