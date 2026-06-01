@@ -35,19 +35,25 @@ This file tracks the Job Tracker API MVP so the project stays focused.
 - Focused status-history edge-case tests
 - README API examples polished
 - GitHub Actions workflow test command hardened
+- Docker Compose end-to-end app run verified
+- README clone-to-running setup documented
+- README example responses documented
+- Interview explanation documented
 
 ## Current Slice
 
-README and CI polish:
+Final README and Docker polish:
 
-- Added CI status badge
-- Clarified project architecture
-- Added endpoint summary table
-- Verified tests in a Linux Python container
+- Verified `docker compose up --build`
+- Verified migrations against Docker PostgreSQL
+- Verified health, create, and update through the running API
+- Added clone-to-running setup steps
+- Added example responses
+- Added interview explanation
 
 ## Next
 
-- Confirm latest GitHub Actions run passes after this workflow update
+- Add Swagger/API screenshots for portfolio polish
 
 ## Later, Not MVP
 

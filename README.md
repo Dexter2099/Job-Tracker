@@ -43,6 +43,13 @@ Alembic tracks database migrations, and GitHub Actions runs the pytest suite on 
 
 ## Local Development
 
+Clone the repository:
+
+```powershell
+git clone https://github.com/Dexter2099/Job-Tracker.git
+cd Job-Tracker
+```
+
 Install dependencies:
 
 ```powershell
@@ -87,6 +94,12 @@ Apply migrations after the database is running:
 alembic upgrade head
 ```
 
+Open the API docs:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
 Health check:
 
 ```text
@@ -100,6 +113,12 @@ Expected response:
   "status": "ok"
 }
 ```
+
+## Screenshots
+
+### Swagger UI
+
+![Swagger UI overview](docs/screenshots/swagger-overview.png)
 
 ## API Endpoints
 
@@ -155,6 +174,26 @@ Example request:
 }
 ```
 
+Example response:
+
+```json
+{
+  "id": 1,
+  "company": "Atlassian",
+  "role_title": "Junior Backend Developer",
+  "location": "Sydney",
+  "job_url": "https://example.com/jobs/backend",
+  "status": "applied",
+  "source": "LinkedIn",
+  "salary_range": "$80,000-$95,000",
+  "notes": "Applied after tailoring resume.",
+  "follow_up_date": "2026-06-15",
+  "applied_date": "2026-05-31",
+  "created_at": "2026-06-01T04:12:38.411147Z",
+  "updated_at": "2026-06-01T04:12:38.411147Z"
+}
+```
+
 ### Update Application
 
 ```text
@@ -171,8 +210,38 @@ Example request:
 }
 ```
 
+Example response:
+
+```json
+{
+  "id": 1,
+  "company": "Atlassian",
+  "role_title": "Junior Backend Developer",
+  "location": "Sydney",
+  "job_url": "https://example.com/jobs/backend",
+  "status": "interview",
+  "source": "LinkedIn",
+  "salary_range": "$80,000-$95,000",
+  "notes": "Phone screen booked.",
+  "follow_up_date": "2026-06-20",
+  "applied_date": "2026-05-31",
+  "created_at": "2026-06-01T04:12:38.411147Z",
+  "updated_at": "2026-06-01T04:12:38.446502Z"
+}
+```
+
 ### Delete Application
 
 ```text
 DELETE /applications/{id}
 ```
+
+Successful deletes return:
+
+```text
+204 No Content
+```
+
+## Interview Explanation
+
+Job Tracker API is a FastAPI backend for managing job applications. A client sends HTTP requests to API endpoints, Pydantic validates and serializes request and response data, the route layer handles the API operation, SQLAlchemy maps Python models to PostgreSQL tables, and Alembic manages database schema changes over time. The project uses pytest for API behavior tests, Docker Compose for local PostgreSQL development, and GitHub Actions for continuous integration.
