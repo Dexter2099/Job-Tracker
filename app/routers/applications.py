@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -13,6 +15,7 @@ router = APIRouter(prefix="/applications", tags=["applications"])
 def list_applications(
     status_filter: ApplicationStatus | None = Query(default=None, alias="status"),
     company: str | None = None,
+    follow_up_before: date | None = None,
     db: Session = Depends(get_db),
 ) -> list[JobApplication]:
     query = db.query(JobApplication)
@@ -22,6 +25,9 @@ def list_applications(
 
     if company is not None:
         query = query.filter(JobApplication.company.ilike(f"%{company}%"))
+
+    if follow_up_before is not None:
+        query = query.filter(JobApplication.follow_up_date <= follow_up_before)
 
     return query.order_by(JobApplication.id).all()
 

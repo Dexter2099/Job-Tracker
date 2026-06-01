@@ -90,6 +90,7 @@ Supported filters:
 ```text
 GET /applications?status=interview
 GET /applications?company=Atlassian
+GET /applications?follow_up_before=2026-06-15
 ```
 
 ### Get Application
