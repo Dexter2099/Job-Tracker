@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import ApplicationStatus, JobApplication
-from app.schemas import JobApplicationCreate, JobApplicationRead
+from app.schemas import JobApplicationCreate, JobApplicationRead, JobApplicationUpdate
 
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -55,3 +55,44 @@ def get_application(
         )
 
     return application
+
+
+@router.patch("/{application_id}", response_model=JobApplicationRead)
+def update_application(
+    application_id: int,
+    application_update: JobApplicationUpdate,
+    db: Session = Depends(get_db),
+) -> JobApplication:
+    application = db.get(JobApplication, application_id)
+    if application is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found",
+        )
+
+    update_data = application_update.model_dump(exclude_unset=True)
+    if update_data.get("job_url") is not None:
+        update_data["job_url"] = str(update_data["job_url"])
+
+    for field, value in update_data.items():
+        setattr(application, field, value)
+
+    db.commit()
+    db.refresh(application)
+    return application
+
+
+@router.delete("/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_application(
+    application_id: int,
+    db: Session = Depends(get_db),
+) -> None:
+    application = db.get(JobApplication, application_id)
+    if application is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found",
+        )
+
+    db.delete(application)
+    db.commit()

@@ -120,3 +120,25 @@ Example request:
   "applied_date": "2026-05-31"
 }
 ```
+
+### Update Application
+
+```text
+PATCH /applications/{id}
+```
+
+Example request:
+
+```json
+{
+  "status": "interview",
+  "notes": "Phone screen booked.",
+  "follow_up_date": "2026-06-20"
+}
+```
+
+### Delete Application
+
+```text
+DELETE /applications/{id}
+```

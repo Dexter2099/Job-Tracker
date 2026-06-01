@@ -18,6 +18,19 @@ class JobApplicationCreate(BaseModel):
     applied_date: date | None = None
 
 
+class JobApplicationUpdate(BaseModel):
+    company: str | None = Field(default=None, min_length=1, max_length=120)
+    role_title: str | None = Field(default=None, min_length=1, max_length=160)
+    location: str | None = Field(default=None, max_length=160)
+    job_url: HttpUrl | None = None
+    status: ApplicationStatus | None = None
+    source: str | None = Field(default=None, max_length=120)
+    salary_range: str | None = Field(default=None, max_length=120)
+    notes: str | None = None
+    follow_up_date: date | None = None
+    applied_date: date | None = None
+
+
 class JobApplicationRead(BaseModel):
     id: int
     company: str

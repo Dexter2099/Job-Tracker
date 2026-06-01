@@ -84,3 +84,60 @@ def test_filter_applications_by_company(client):
     data = response.json()
     assert len(data) == 1
     assert data[0]["company"] == "Canva"
+
+
+def test_update_application(client):
+    created = create_application(client, status="applied", notes="Initial note.")
+
+    response = client.patch(
+        f"/applications/{created['id']}",
+        json={
+            "status": "interview",
+            "notes": "Phone screen booked.",
+            "follow_up_date": "2026-06-20",
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == created["id"]
+    assert data["status"] == "interview"
+    assert data["notes"] == "Phone screen booked."
+    assert data["follow_up_date"] == "2026-06-20"
+    assert data["company"] == "Atlassian"
+
+
+def test_update_missing_application_returns_404(client):
+    response = client.patch("/applications/999", json={"status": "interview"})
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Application not found"}
+
+
+def test_update_application_rejects_invalid_status(client):
+    created = create_application(client)
+
+    response = client.patch(
+        f"/applications/{created['id']}",
+        json={"status": "not_a_real_status"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_delete_application(client):
+    created = create_application(client)
+
+    delete_response = client.delete(f"/applications/{created['id']}")
+    get_response = client.get(f"/applications/{created['id']}")
+
+    assert delete_response.status_code == 204
+    assert delete_response.content == b""
+    assert get_response.status_code == 404
+
+
+def test_delete_missing_application_returns_404(client):
+    response = client.delete("/applications/999")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Application not found"}
