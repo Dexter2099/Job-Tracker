@@ -169,6 +169,47 @@ def test_update_application_status_creates_history_record(client, db_session):
     assert history_records[0].changed_at is not None
 
 
+def test_update_application_without_status_change_does_not_create_history(client, db_session):
+    created = create_application(client, status="applied", notes="Initial note.")
+
+    response = client.patch(
+        f"/applications/{created['id']}",
+        json={"notes": "Updated note only."},
+    )
+
+    history_records = db_session.query(StatusHistory).all()
+    assert response.status_code == 200
+    assert history_records == []
+
+
+def test_update_application_with_same_status_does_not_create_history(client, db_session):
+    created = create_application(client, status="applied")
+
+    response = client.patch(
+        f"/applications/{created['id']}",
+        json={"status": "applied", "notes": "Status remains applied."},
+    )
+
+    history_records = db_session.query(StatusHistory).all()
+    assert response.status_code == 200
+    assert history_records == []
+
+
+def test_delete_application_removes_status_history(client, db_session):
+    created = create_application(client, status="applied")
+    update_response = client.patch(
+        f"/applications/{created['id']}",
+        json={"status": "interview"},
+    )
+
+    delete_response = client.delete(f"/applications/{created['id']}")
+
+    history_records = db_session.query(StatusHistory).all()
+    assert update_response.status_code == 200
+    assert delete_response.status_code == 204
+    assert history_records == []
+
+
 def test_delete_application(client):
     created = create_application(client)
 

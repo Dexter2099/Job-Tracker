@@ -32,20 +32,18 @@ This file tracks the Job Tracker API MVP so the project stays focused.
 - `status_history` table
 - Automatic status history record when application status changes
 - Alembic status-history migration verified against Docker PostgreSQL
+- Focused status-history edge-case tests
 
 ## Current Slice
 
-Status history persistence:
+Status history edge-case coverage:
 
-- Record `application_id`
-- Record `old_status`
-- Record `new_status`
-- Record `changed_at`
-- Record update note when supplied
+- No history row for non-status updates
+- No history row when status is unchanged
+- Status history removed when application is deleted
 
 ## Next
 
-- Add focused tests for status history edge cases
 - Polish README examples and GitHub Actions status
 
 ## Later, Not MVP
