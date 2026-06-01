@@ -31,6 +31,7 @@ This file tracks the Job Tracker API MVP so the project stays focused.
 - Filter applications by `follow_up_before`
 - `status_history` table
 - Automatic status history record when application status changes
+- Alembic status-history migration verified against Docker PostgreSQL
 
 ## Current Slice
 
@@ -44,7 +45,6 @@ Status history persistence:
 
 ## Next
 
-- Confirm Alembic migration against Docker PostgreSQL
 - Add focused tests for status history edge cases
 - Polish README examples and GitHub Actions status
 
