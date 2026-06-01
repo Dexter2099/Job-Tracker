@@ -1,5 +1,7 @@
 from datetime import date
 
+from app.models import StatusHistory
+
 
 def create_application(client, **overrides):
     payload = {
@@ -147,6 +149,24 @@ def test_update_application_rejects_invalid_status(client):
     )
 
     assert response.status_code == 422
+
+
+def test_update_application_status_creates_history_record(client, db_session):
+    created = create_application(client, status="applied", notes="Initial note.")
+
+    response = client.patch(
+        f"/applications/{created['id']}",
+        json={"status": "interview", "notes": "Phone screen booked."},
+    )
+
+    history_records = db_session.query(StatusHistory).all()
+    assert response.status_code == 200
+    assert len(history_records) == 1
+    assert history_records[0].application_id == created["id"]
+    assert history_records[0].old_status == "applied"
+    assert history_records[0].new_status == "interview"
+    assert history_records[0].note == "Phone screen booked."
+    assert history_records[0].changed_at is not None
 
 
 def test_delete_application(client):

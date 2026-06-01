@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import ApplicationStatus, JobApplication
+from app.models import ApplicationStatus, JobApplication, StatusHistory
 from app.schemas import JobApplicationCreate, JobApplicationRead, JobApplicationUpdate
 
 
@@ -80,8 +80,21 @@ def update_application(
     if update_data.get("job_url") is not None:
         update_data["job_url"] = str(update_data["job_url"])
 
+    old_status = application.status
+    new_status = update_data.get("status")
+
     for field, value in update_data.items():
         setattr(application, field, value)
+
+    if new_status is not None and new_status != old_status:
+        db.add(
+            StatusHistory(
+                application_id=application.id,
+                old_status=old_status,
+                new_status=new_status,
+                note=update_data.get("notes"),
+            )
+        )
 
     db.commit()
     db.refresh(application)
