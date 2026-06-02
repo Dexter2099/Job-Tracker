@@ -36,11 +36,12 @@ class JobApplication(Base):
     salary_range: Mapped[str | None] = mapped_column(String(120), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     follow_up_date: Mapped[date | None] = mapped_column(Date, nullable=True, index=True)
-    applied_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    applied_date: Mapped[date | None] = mapped_column(Date, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
+        index=True,
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

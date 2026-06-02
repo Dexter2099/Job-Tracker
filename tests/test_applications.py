@@ -42,7 +42,40 @@ def test_list_applications(client):
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
-    assert [application["company"] for application in data] == ["Atlassian", "Canva"]
+    assert [application["company"] for application in data] == ["Canva", "Atlassian"]
+
+
+def test_list_applications_uses_default_pagination_limit(client):
+    for index in range(25):
+        create_application(client, company=f"Company {index:02d}")
+
+    response = client.get("/applications")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 20
+    assert data[0]["company"] == "Company 24"
+    assert data[-1]["company"] == "Company 05"
+
+
+def test_list_applications_supports_limit_and_offset(client):
+    for index in range(5):
+        create_application(client, company=f"Company {index:02d}")
+
+    response = client.get("/applications?limit=2&offset=2")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert [application["company"] for application in data] == [
+        "Company 02",
+        "Company 01",
+    ]
+
+
+def test_list_applications_rejects_invalid_pagination_values(client):
+    response = client.get("/applications?limit=0&offset=-1")
+
+    assert response.status_code == 422
 
 
 def test_get_application_by_id(client):
@@ -80,12 +113,97 @@ def test_filter_applications_by_company(client):
     create_application(client, company="Atlassian")
     create_application(client, company="Canva")
 
-    response = client.get("/applications?company=can")
+    response = client.get("/applications?company=CAN")
 
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
     assert data[0]["company"] == "Canva"
+
+
+def test_filter_applications_by_role(client):
+    create_application(client, company="Atlassian", role_title="Junior Backend Developer")
+    create_application(client, company="Canva", role_title="Product Designer")
+
+    response = client.get("/applications?role=BACKEND")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["company"] == "Atlassian"
+    assert data[0]["role_title"] == "Junior Backend Developer"
+
+
+def test_filter_applications_by_applied_date_range(client):
+    create_application(client, company="Atlassian", applied_date="2026-05-31")
+    create_application(client, company="Canva", applied_date="2026-06-05")
+    create_application(client, company="Google", applied_date="2026-06-12")
+
+    response = client.get(
+        "/applications?applied_date_from=2026-06-01&applied_date_to=2026-06-10"
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert {application["company"] for application in data} == {"Canva"}
+
+
+def test_filter_applications_by_follow_up_date_range(client):
+    create_application(client, company="Atlassian", follow_up_date="2026-06-10")
+    create_application(client, company="Canva", follow_up_date="2026-06-15")
+    create_application(client, company="Google", follow_up_date="2026-06-20")
+
+    response = client.get(
+        "/applications?follow_up_date_from=2026-06-11&follow_up_date_to=2026-06-20"
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert {application["company"] for application in data} == {"Canva", "Google"}
+
+
+def test_sort_applications_by_applied_date_desc(client):
+    create_application(client, company="Atlassian", applied_date="2026-06-01")
+    create_application(client, company="Canva", applied_date="2026-06-10")
+    create_application(client, company="Google", applied_date="2026-06-05")
+
+    response = client.get("/applications?sort=applied_date_desc")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert [application["company"] for application in data] == [
+        "Canva",
+        "Google",
+        "Atlassian",
+    ]
+
+
+def test_filter_applications_combines_status_and_role(client):
+    create_application(
+        client,
+        company="Atlassian",
+        status="applied",
+        role_title="Junior Backend Developer",
+    )
+    create_application(
+        client,
+        company="Canva",
+        status="interview",
+        role_title="Senior Backend Developer",
+    )
+    create_application(
+        client,
+        company="Google",
+        status="applied",
+        role_title="Product Designer",
+    )
+
+    response = client.get("/applications?status=applied&role=backend")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["company"] == "Atlassian"
 
 
 def test_filter_applications_by_follow_up_before(client):
@@ -97,7 +215,7 @@ def test_filter_applications_by_follow_up_before(client):
 
     assert response.status_code == 200
     data = response.json()
-    assert [application["company"] for application in data] == ["Atlassian", "Canva"]
+    assert {application["company"] for application in data} == {"Atlassian", "Canva"}
 
 
 def test_filter_applications_by_follow_up_before_excludes_empty_dates(client):

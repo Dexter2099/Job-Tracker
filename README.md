@@ -145,6 +145,16 @@ GET /applications?company=Atlassian
 GET /applications?follow_up_before=2026-06-15
 ```
 
+Pagination:
+
+```text
+GET /applications?limit=20&offset=0
+GET /applications?status=interview&limit=10&offset=20
+```
+
+`limit` defaults to `20` and accepts values from `1` to `100`. `offset`
+defaults to `0`.
+
 ### Get Application
 
 ```text

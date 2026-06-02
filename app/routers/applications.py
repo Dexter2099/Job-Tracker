@@ -1,6 +1,8 @@
 from datetime import date
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -15,21 +17,73 @@ router = APIRouter(prefix="/applications", tags=["applications"])
 def list_applications(
     status_filter: ApplicationStatus | None = Query(default=None, alias="status"),
     company: str | None = None,
+    role: str | None = None,
+    applied_date_from: date | None = None,
+    applied_date_to: date | None = None,
+    follow_up_date_from: date | None = None,
+    follow_up_date_to: date | None = None,
     follow_up_before: date | None = None,
+    sort: Literal[
+        "applied_date_desc",
+        "applied_date_asc",
+        "follow_up_date_desc",
+        "follow_up_date_asc",
+        "created_at_desc",
+        "created_at_asc",
+    ] = "created_at_desc",
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ) -> list[JobApplication]:
-    query = db.query(JobApplication)
+    query = select(JobApplication)
 
     if status_filter is not None:
-        query = query.filter(JobApplication.status == status_filter)
+        query = query.where(JobApplication.status == status_filter)
 
     if company is not None:
-        query = query.filter(JobApplication.company.ilike(f"%{company}%"))
+        query = query.where(JobApplication.company.ilike(f"%{company}%"))
+
+    if role is not None:
+        query = query.where(JobApplication.role_title.ilike(f"%{role}%"))
+
+    if applied_date_from is not None:
+        query = query.where(JobApplication.applied_date >= applied_date_from)
+
+    if applied_date_to is not None:
+        query = query.where(JobApplication.applied_date <= applied_date_to)
+
+    if follow_up_date_from is not None:
+        query = query.where(JobApplication.follow_up_date >= follow_up_date_from)
+
+    if follow_up_date_to is not None:
+        query = query.where(JobApplication.follow_up_date <= follow_up_date_to)
 
     if follow_up_before is not None:
-        query = query.filter(JobApplication.follow_up_date <= follow_up_before)
+        query = query.where(JobApplication.follow_up_date <= follow_up_before)
 
-    return query.order_by(JobApplication.id).all()
+    sort_options = {
+        "applied_date_desc": (
+            JobApplication.applied_date.desc(),
+            JobApplication.id.desc(),
+        ),
+        "applied_date_asc": (JobApplication.applied_date.asc(), JobApplication.id.asc()),
+        "follow_up_date_desc": (
+            JobApplication.follow_up_date.desc(),
+            JobApplication.id.desc(),
+        ),
+        "follow_up_date_asc": (
+            JobApplication.follow_up_date.asc(),
+            JobApplication.id.asc(),
+        ),
+        "created_at_desc": (
+            JobApplication.created_at.desc(),
+            JobApplication.id.desc(),
+        ),
+        "created_at_asc": (JobApplication.created_at.asc(), JobApplication.id.asc()),
+    }
+    query = query.order_by(*sort_options[sort])
+
+    return db.execute(query.offset(offset).limit(limit)).scalars().all()
 
 
 @router.post("", response_model=JobApplicationRead, status_code=status.HTTP_201_CREATED)
