@@ -128,6 +128,7 @@ Expected response:
 | `POST` | `/applications` | Create a job application |
 | `GET` | `/applications` | List job applications |
 | `GET` | `/applications/{id}` | Get one job application |
+| `GET` | `/applications/{id}/status-history` | List status history for one job application |
 | `PATCH` | `/applications/{id}` | Partially update a job application |
 | `DELETE` | `/applications/{id}` | Delete a job application |
 

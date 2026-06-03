@@ -31,6 +31,7 @@ This file tracks the Job Tracker API MVP so the project stays focused.
 - Filter applications by `follow_up_before`
 - `status_history` table
 - Automatic status history record when application status changes
+- API endpoint to read status history
 - Alembic status-history migration verified against Docker PostgreSQL
 - Focused status-history edge-case tests
 - README API examples polished
@@ -57,7 +58,6 @@ Final README and Docker polish:
 
 ## Later, Not MVP
 
-- API endpoint to read status history
 - Frontend
 - Authentication
 - AI matching

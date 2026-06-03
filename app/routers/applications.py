@@ -7,7 +7,12 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import ApplicationStatus, JobApplication, StatusHistory
-from app.schemas import JobApplicationCreate, JobApplicationRead, JobApplicationUpdate
+from app.schemas import (
+    JobApplicationCreate,
+    JobApplicationRead,
+    JobApplicationUpdate,
+    StatusHistoryRead,
+)
 
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -115,6 +120,26 @@ def get_application(
         )
 
     return application
+
+
+@router.get("/{application_id}/status-history", response_model=list[StatusHistoryRead])
+def get_application_status_history(
+    application_id: int,
+    db: Session = Depends(get_db),
+) -> list[StatusHistory]:
+    application = db.get(JobApplication, application_id)
+    if application is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found",
+        )
+
+    query = (
+        select(StatusHistory)
+        .where(StatusHistory.application_id == application_id)
+        .order_by(StatusHistory.changed_at.asc(), StatusHistory.id.asc())
+    )
+    return db.execute(query).scalars().all()
 
 
 @router.patch("/{application_id}", response_model=JobApplicationRead)

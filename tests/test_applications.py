@@ -287,6 +287,43 @@ def test_update_application_status_creates_history_record(client, db_session):
     assert history_records[0].changed_at is not None
 
 
+def test_read_status_history_for_application(client):
+    created = create_application(client, status="applied", notes="Initial note.")
+
+    update_response = client.patch(
+        f"/applications/{created['id']}",
+        json={"status": "interview", "notes": "Phone screen booked."},
+    )
+    response = client.get(f"/applications/{created['id']}/status-history")
+
+    assert update_response.status_code == 200
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["id"] == 1
+    assert data[0]["application_id"] == created["id"]
+    assert data[0]["old_status"] == "applied"
+    assert data[0]["new_status"] == "interview"
+    assert data[0]["changed_at"] is not None
+    assert data[0]["note"] == "Phone screen booked."
+
+
+def test_read_status_history_returns_empty_list_without_status_changes(client):
+    created = create_application(client, status="applied")
+
+    response = client.get(f"/applications/{created['id']}/status-history")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_read_status_history_for_missing_application_returns_404(client):
+    response = client.get("/applications/999/status-history")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Application not found"}
+
+
 def test_update_application_without_status_change_does_not_create_history(client, db_session):
     created = create_application(client, status="applied", notes="Initial note.")
 

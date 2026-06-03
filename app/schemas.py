@@ -47,3 +47,14 @@ class JobApplicationRead(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class StatusHistoryRead(BaseModel):
+    id: int
+    application_id: int
+    old_status: ApplicationStatus
+    new_status: ApplicationStatus
+    changed_at: datetime
+    note: str | None
+
+    model_config = ConfigDict(from_attributes=True)
