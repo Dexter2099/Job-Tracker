@@ -26,6 +26,7 @@ Job Tracker API lets a user manage job applications through REST endpoints. The 
 - Store recruiter/contact records linked to companies and applications
 - Store first-class follow-up reminder records linked to applications
 - Return weekly job-search statistics
+- Export job applications as CSV
 - Filter applications by status, company, and follow-up date
 - Store status changes over time in a status history table
 - Add notes to each application
@@ -138,6 +139,7 @@ Expected response:
 | `GET` | `/health` | Check API health |
 | `POST` | `/applications` | Create a job application |
 | `GET` | `/applications` | List job applications |
+| `GET` | `/applications/export.csv` | Export job applications as CSV |
 | `GET` | `/applications/{id}` | Get one job application |
 | `GET` | `/applications/{id}/status-history` | List status history for one job application |
 | `POST` | `/applications/{id}/follow-up-reminders` | Create a follow-up reminder |
@@ -174,6 +176,20 @@ GET /applications?status=interview&limit=10&offset=20
 
 `limit` defaults to `20` and accepts values from `1` to `100`. `offset`
 defaults to `0`.
+
+### Export Applications
+
+```text
+GET /applications/export.csv
+GET /applications/export.csv?status=interview&company=Canva
+```
+
+The response is `text/csv` with a `Content-Disposition` attachment header and
+these columns:
+
+```text
+id,company,role_title,location,status,applied_date,follow_up_date,contact_name,contact_email,notes,created_at,updated_at
+```
 
 ### Get Application
 

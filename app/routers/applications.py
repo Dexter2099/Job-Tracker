@@ -1,7 +1,9 @@
+import csv
 from datetime import date
+from io import StringIO
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -26,6 +28,21 @@ from app.schemas import (
 
 
 router = APIRouter(prefix="/applications", tags=["applications"])
+
+CSV_EXPORT_COLUMNS = [
+    "id",
+    "company",
+    "role_title",
+    "location",
+    "status",
+    "applied_date",
+    "follow_up_date",
+    "contact_name",
+    "contact_email",
+    "notes",
+    "created_at",
+    "updated_at",
+]
 
 
 def get_or_create_company(db: Session, name: str) -> Company:
@@ -59,6 +76,57 @@ def get_or_create_contact(
     db.add(contact)
     db.flush()
     return contact
+
+
+def apply_application_export_filters(
+    query,
+    status_filter: ApplicationStatus | None,
+    company: str | None,
+    role: str | None,
+    follow_up_before: date | None,
+    follow_up_after: date | None,
+    applied_before: date | None,
+    applied_after: date | None,
+):
+    if status_filter is not None:
+        query = query.where(JobApplication.status == status_filter)
+
+    if company is not None:
+        query = query.where(JobApplication.company.ilike(f"%{company}%"))
+
+    if role is not None:
+        query = query.where(JobApplication.role_title.ilike(f"%{role}%"))
+
+    if follow_up_before is not None:
+        query = query.where(JobApplication.follow_up_date <= follow_up_before)
+
+    if follow_up_after is not None:
+        query = query.where(JobApplication.follow_up_date >= follow_up_after)
+
+    if applied_before is not None:
+        query = query.where(JobApplication.applied_date <= applied_before)
+
+    if applied_after is not None:
+        query = query.where(JobApplication.applied_date >= applied_after)
+
+    return query
+
+
+def application_csv_row(application: JobApplication) -> dict[str, str | int | None]:
+    return {
+        "id": application.id,
+        "company": application.company,
+        "role_title": application.role_title,
+        "location": application.location,
+        "status": str(application.status),
+        "applied_date": application.applied_date,
+        "follow_up_date": application.follow_up_date,
+        "contact_name": application.contact_name,
+        "contact_email": application.contact_email,
+        "notes": application.notes,
+        "created_at": application.created_at,
+        "updated_at": application.updated_at,
+    }
 
 
 @router.get("", response_model=list[JobApplicationRead])
@@ -139,6 +207,42 @@ def list_applications(
     query = query.order_by(*sort_options[sort])
 
     return db.execute(query.offset(offset).limit(limit)).scalars().all()
+
+
+@router.get("/export.csv")
+def export_applications_csv(
+    status_filter: ApplicationStatus | None = Query(default=None, alias="status"),
+    company: str | None = None,
+    role: str | None = None,
+    follow_up_before: date | None = None,
+    follow_up_after: date | None = None,
+    applied_before: date | None = None,
+    applied_after: date | None = None,
+    db: Session = Depends(get_db),
+) -> Response:
+    query = apply_application_export_filters(
+        select(JobApplication),
+        status_filter=status_filter,
+        company=company,
+        role=role,
+        follow_up_before=follow_up_before,
+        follow_up_after=follow_up_after,
+        applied_before=applied_before,
+        applied_after=applied_after,
+    ).order_by(JobApplication.id.asc())
+    applications = db.execute(query).scalars().all()
+
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=CSV_EXPORT_COLUMNS)
+    writer.writeheader()
+    for application in applications:
+        writer.writerow(application_csv_row(application))
+
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="job_applications.csv"'},
+    )
 
 
 @router.post("", response_model=JobApplicationRead, status_code=status.HTTP_201_CREATED)

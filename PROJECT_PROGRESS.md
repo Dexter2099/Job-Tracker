@@ -76,26 +76,29 @@ stays focused.
   - `GET /stats/weekly` returns applications sent, interviews, rejections, offers, follow-ups due, and overdue follow-ups
   - optional `start_date` and `end_date` query parameters support custom ranges
   - endpoint is read-only and covered by focused tests
+- CSV export endpoint added:
+  - `GET /applications/export.csv` returns application rows as downloadable CSV
+  - export supports status, company, role, applied date, and follow-up date filters
+  - endpoint is read-only and uses the standard library CSV writer
 
 ## Current Slice
 
-Weekly application statistics:
+Application CSV export:
 
-- Added a small read-only stats router
-- Counts status outcomes from application status history
-- Counts incomplete follow-up reminders due in range and overdue before today
+- Added a small read-only CSV endpoint
+- Preserved existing JSON list endpoint behavior
+- Kept export scoped to job application rows
 
 ## Next
 
-- Add CSV export for applications
-- Keep export read-only
-- Preserve existing application and reminder behavior
+- Add structured logging and request IDs
+- Keep logging middleware small
+- Preserve existing response contracts
 
 ## Later Production Slices
 
 - Frontend
 - Authentication
-- CSV export
 - Structured logging and request IDs
 - Production deployment
 - Role-based access
