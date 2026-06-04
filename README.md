@@ -2,11 +2,38 @@
 
 [![Tests](https://github.com/Dexter2099/Job-Tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/Dexter2099/Job-Tracker/actions/workflows/tests.yml)
 
-A FastAPI backend for tracking job applications, companies, recruiter contacts, interview stages, notes, and follow-up dates.
+A production-hardened FastAPI backend for tracking job applications, companies,
+recruiter contacts, status history, follow-up reminders, weekly job-search
+stats, and CSV export.
 
 ## Overview
 
-Job Tracker API lets a user manage job applications through REST endpoints. The API validates request and response data with Pydantic, persists application, company, and contact data in PostgreSQL through SQLAlchemy models, and manages schema changes with Alembic migrations.
+Job Tracker API lets a user manage a job search through REST endpoints. The API
+validates request and response data with Pydantic, persists normalized
+application data in PostgreSQL through SQLAlchemy models, and manages schema
+changes with Alembic migrations. It also includes production-style backend
+behaviour: request IDs, structured JSON request logs, standardized error
+responses, health/readiness checks, Docker Compose local development, seed data,
+and PostgreSQL-backed CI.
+
+This project is intentionally kept as a $0 portfolio version. It is not deployed
+to a public free tier because free databases can expire, cold starts make demos
+unreliable, and the local Docker Compose workflow gives a more repeatable
+interview walkthrough.
+
+## What This Project Demonstrates
+
+- REST API design
+- FastAPI routing
+- Pydantic request/response validation
+- SQLAlchemy ORM modelling
+- PostgreSQL persistence
+- Alembic migrations
+- Docker Compose local environment
+- pytest coverage
+- PostgreSQL-backed CI
+- Production API behaviour: request IDs, JSON logging, standardized errors
+- Operational health/readiness endpoints
 
 ## Tech Stack
 
@@ -39,20 +66,39 @@ Job Tracker API lets a user manage job applications through REST endpoints. The 
 
 ```text
 Client
-  -> FastAPI route
-  -> Pydantic schema validation
-  -> SQLAlchemy model/session
-  -> PostgreSQL tables
-       - companies
-       - contacts
-       - job_applications
-       - follow_up_reminders
-       - application_status_history
+  -> FastAPI routers
+  -> Pydantic schemas
+  -> SQLAlchemy session/models
+  -> PostgreSQL
+  -> Alembic migrations
+  -> pytest + GitHub Actions verification
 ```
 
 Alembic tracks database migrations, including the normalized `companies` and
 `contacts` tables, follow-up reminder records, and application foreign keys.
 GitHub Actions runs the pytest suite on pushes and pull requests.
+
+## Schema Overview
+
+| Table | Purpose |
+| --- | --- |
+| `companies` | Stores each company once so applications and contacts can link to a shared company record. |
+| `contacts` | Stores recruiter or hiring contact details linked to a company. |
+| `job_applications` | Stores the main job application record, including role, status, dates, notes, and optional company/contact links. |
+| `application_status_history` | Stores status transitions so application progress can be audited over time. |
+| `follow_up_reminders` | Stores durable follow-up reminders linked to applications. |
+
+## Production-Hardening Features
+
+- Request ID middleware adds `X-Request-ID` to every response
+- Structured JSON request logging records request ID, method, path, status code, and duration
+- Standardized error responses wrap HTTP, validation, and unhandled errors
+- `/health` checks the API process; `/ready` checks database readiness
+- Pagination keeps list responses bounded
+- CSV export provides a deterministic download path for applications
+- Weekly stats summarize application activity and follow-up work
+- PostgreSQL-backed CI verifies migrations and tests against a real database
+- Repeatable seed data creates a local demo dataset without uncontrolled duplicates
 
 ## Local Development
 
@@ -102,6 +148,29 @@ python scripts/seed_data.py
 The seed script creates a small fixed demo dataset for Swagger walkthroughs,
 weekly stats, reminders, and CSV export. It is safe to run more than once:
 known seed records are skipped instead of duplicated.
+
+## Run The Demo Locally
+
+```powershell
+git clone https://github.com/Dexter2099/Job-Tracker.git
+cd Job-Tracker
+pip install -r requirements.txt
+docker compose up --build
+alembic upgrade head
+python scripts/seed_data.py
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+Run the test suite:
+
+```powershell
+python -m pytest -v
+```
 
 ## Docker
 
@@ -181,6 +250,15 @@ Handled errors use a consistent response shape:
   }
 }
 ```
+
+## Why Not Deployed?
+
+Deployment is intentionally skipped to keep the project at $0 and avoid an
+unreliable portfolio link caused by free-tier cold starts, sleeping services, or
+expiring databases. The project can still be run locally with Docker Compose,
+and it demonstrates deployment readiness through Docker, Alembic migrations,
+health/readiness endpoints, GitHub Actions, and environment-based database
+configuration. No private job-tracker data is committed.
 
 ## Screenshots
 
@@ -424,6 +502,28 @@ Successful deletes return:
 204 No Content
 ```
 
-## Interview Explanation
+## How I Would Explain This In An Interview
 
-Job Tracker API is a FastAPI backend for managing job applications. A client sends HTTP requests to API endpoints, Pydantic validates and serializes request and response data, the route layer handles the API operation, SQLAlchemy maps Python models to PostgreSQL tables, and Alembic manages database schema changes over time. The project uses pytest for API behavior tests, Docker Compose for local PostgreSQL development, and GitHub Actions for continuous integration.
+Job Tracker API is a FastAPI/PostgreSQL backend for managing job applications,
+companies, recruiter contacts, status history, follow-up reminders, weekly
+stats, and CSV export.
+
+When a client sends a request, FastAPI routes it to the correct handler,
+Pydantic validates the request and response shape, SQLAlchemy uses a database
+session to read or write models, PostgreSQL stores the data, and Alembic keeps
+schema changes versioned. The test suite verifies the API locally and in
+PostgreSQL-backed CI.
+
+I normalized companies and contacts because the same company or recruiter can
+appear across multiple applications, and duplicating those fields inside every
+application would make the data harder to maintain. Status history and
+follow-up reminders make the domain model stronger: they preserve how an
+application changed over time and turn follow-up work into durable records
+instead of a single date field.
+
+I hardened the API with request IDs, structured JSON logs, standardized error
+responses, pagination, CSV export, seed data, and separate `/health` and
+`/ready` endpoints. I intentionally left out auth and public deployment for this
+portfolio version so the project stays focused, free to run, and easy to demo
+locally. A deliberate production-realism path would add auth and user-owned
+data next.

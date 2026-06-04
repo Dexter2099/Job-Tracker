@@ -96,26 +96,29 @@ stays focused.
   - `GET /health` still returns the unchanged process health response
   - `GET /ready` verifies database connectivity with a simple readiness query
   - database readiness failures return a safe 503 response without internal details
+- README/architecture polish completed:
+  - portfolio-focused opening summary added
+  - architecture, schema overview, production-hardening features, and local demo flow documented
+  - deployment skip decision and interview explanation documented
 
 ## Current Slice
 
-DB-aware readiness endpoint:
+Portfolio version complete:
 
-- Kept `/health` unchanged
-- Added `/ready` for database-backed readiness checks
-- Skipped deployment config to keep the project at $0
+- Stop adding features to the $0 portfolio version
+- Use the project in applications and interviews
+- Keep future expansion deliberate and scoped
 
 ## Next
 
-- README/architecture polish
-- Then stop and use the project in applications
-- Keep auth as the later production-realism path if it is chosen deliberately
+- No immediate feature slice
+- Future deliberate path: auth + user-owned data
 
 ## Later Production Slices
 
-- Frontend
-- Authentication
+- Authentication and user-owned data
 - Role-based access
+- Frontend
 - AI matching
 - Email integration
 - Web scraping
