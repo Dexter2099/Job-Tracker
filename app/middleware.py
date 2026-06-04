@@ -15,6 +15,7 @@ request_logger = logging.getLogger("job_tracker.requests")
 class RequestIDLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         request_id = request.headers.get(REQUEST_ID_HEADER) or str(uuid4())
+        request.state.request_id = request_id
         start = time.perf_counter()
         status_code = 500
 

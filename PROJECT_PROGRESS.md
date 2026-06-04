@@ -84,26 +84,30 @@ stays focused.
   - every response includes `X-Request-ID`
   - incoming `X-Request-ID` values are reused, otherwise UUID4 IDs are generated
   - each request emits one JSON log line with method, path, status code, duration, and request ID
+- Standardized error responses added:
+  - handled API errors return an `error` object with code, message, details, and request ID
+  - HTTP errors, validation errors, and unhandled exceptions have dedicated handlers
+  - existing status codes and successful response bodies are preserved
 
 ## Current Slice
 
-Request IDs and structured request logging:
+Standardized error responses:
 
-- Added small app-level middleware
-- Preserved existing response bodies
-- Kept logging on the Python standard library with no vendor integrations
+- Added small FastAPI exception handlers
+- Wrapped handled errors without rewriting routers
+- Kept request ID headers and error body request IDs aligned
 
 ## Next
 
-- Add standardized error responses
-- Keep existing status codes stable
-- Preserve existing successful response contracts
+- Add a seed data script
+- Keep seed data local and explicit
+- Do not change the database schema
 
 ## Later Production Slices
 
 - Frontend
 - Authentication
-- Standardized error responses
+- Seed data script
 - Production deployment
 - Role-based access
 - AI matching

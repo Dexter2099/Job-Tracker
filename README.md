@@ -134,6 +134,19 @@ Every response includes an `X-Request-ID` header. If the client sends
 request also emits one JSON log line through the `job_tracker.requests` logger
 with `request_id`, `method`, `path`, `status_code`, and `duration_ms`.
 
+Handled errors use a consistent response shape:
+
+```json
+{
+  "error": {
+    "code": "not_found",
+    "message": "Application not found",
+    "details": null,
+    "request_id": "..."
+  }
+}
+```
+
 ## Screenshots
 
 ### Swagger UI

@@ -22,6 +22,18 @@ def create_application(client, **overrides):
     return response.json()
 
 
+def assert_error_response(response, status_code, code, message):
+    assert response.status_code == status_code
+    assert response.json() == {
+        "error": {
+            "code": code,
+            "message": message,
+            "details": None,
+            "request_id": response.headers["X-Request-ID"],
+        }
+    }
+
+
 def test_create_application(client):
     data = create_application(client)
     assert data["id"] == 1
@@ -122,8 +134,7 @@ def test_get_application_by_id(client):
 def test_get_missing_application_returns_404(client):
     response = client.get("/applications/999")
 
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Application not found"}
+    assert_error_response(response, 404, "not_found", "Application not found")
 
 
 def test_filter_applications_by_status(client):
@@ -369,8 +380,7 @@ def test_update_application_relinks_contact_record(client, db_session):
 def test_update_missing_application_returns_404(client):
     response = client.patch("/applications/999", json={"status": "interview"})
 
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Application not found"}
+    assert_error_response(response, 404, "not_found", "Application not found")
 
 
 def test_update_application_rejects_invalid_status(client):
@@ -450,8 +460,7 @@ def test_read_status_history_returns_empty_list_without_status_changes(client):
 def test_read_status_history_for_missing_application_returns_404(client):
     response = client.get("/applications/999/status-history")
 
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Application not found"}
+    assert_error_response(response, 404, "not_found", "Application not found")
 
 
 def test_create_follow_up_reminder_for_application(client):
@@ -500,8 +509,7 @@ def test_create_follow_up_reminder_for_missing_application_returns_404(client):
         json={"reminder_date": "2026-06-18", "note": "Send polite follow-up."},
     )
 
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Application not found"}
+    assert_error_response(response, 404, "not_found", "Application not found")
 
 
 def test_mark_follow_up_reminder_completed(client):
@@ -579,5 +587,4 @@ def test_delete_application(client):
 def test_delete_missing_application_returns_404(client):
     response = client.delete("/applications/999")
 
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Application not found"}
+    assert_error_response(response, 404, "not_found", "Application not found")
