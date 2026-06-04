@@ -64,3 +64,24 @@ class StatusHistoryRead(BaseModel):
     note: str | None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FollowUpReminderCreate(BaseModel):
+    reminder_date: date
+    note: str | None = None
+
+
+class FollowUpReminderUpdate(BaseModel):
+    completed: bool
+
+
+class FollowUpReminderRead(BaseModel):
+    id: int
+    application_id: int
+    reminder_date: date
+    note: str | None
+    completed: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

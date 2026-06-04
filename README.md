@@ -24,6 +24,7 @@ Job Tracker API lets a user manage job applications through REST endpoints. The 
 - Track company, role, location, application status, notes, and follow-up date
 - Store companies in a first-class table linked from job applications
 - Store recruiter/contact records linked to companies and applications
+- Store first-class follow-up reminder records linked to applications
 - Filter applications by status, company, and follow-up date
 - Store status changes over time in a status history table
 - Add notes to each application
@@ -42,12 +43,13 @@ Client
        - companies
        - contacts
        - job_applications
+       - follow_up_reminders
        - application_status_history
 ```
 
 Alembic tracks database migrations, including the normalized `companies` and
-`contacts` tables plus application foreign keys. GitHub Actions runs the pytest
-suite on pushes and pull requests.
+`contacts` tables, follow-up reminder records, and application foreign keys.
+GitHub Actions runs the pytest suite on pushes and pull requests.
 
 ## Local Development
 
@@ -137,6 +139,9 @@ Expected response:
 | `GET` | `/applications` | List job applications |
 | `GET` | `/applications/{id}` | Get one job application |
 | `GET` | `/applications/{id}/status-history` | List status history for one job application |
+| `POST` | `/applications/{id}/follow-up-reminders` | Create a follow-up reminder |
+| `GET` | `/applications/{id}/follow-up-reminders` | List follow-up reminders |
+| `PATCH` | `/applications/{id}/follow-up-reminders/{reminder_id}` | Mark a reminder completed |
 | `PATCH` | `/applications/{id}` | Partially update a job application |
 | `DELETE` | `/applications/{id}` | Delete a job application |
 
@@ -185,6 +190,38 @@ GET /applications/{id}/status-history
 ```
 
 Status history is returned newest first.
+
+### Follow-Up Reminders
+
+Applications still support the simple `follow_up_date` field. For durable
+follow-up tracking, reminders can also be stored as first-class records linked
+to an application.
+
+```text
+POST /applications/{id}/follow-up-reminders
+```
+
+Example request:
+
+```json
+{
+  "reminder_date": "2026-06-18",
+  "note": "Send polite follow-up."
+}
+```
+
+```text
+GET /applications/{id}/follow-up-reminders
+PATCH /applications/{id}/follow-up-reminders/{reminder_id}
+```
+
+Mark a reminder completed:
+
+```json
+{
+  "completed": true
+}
+```
 
 ### Create Application
 

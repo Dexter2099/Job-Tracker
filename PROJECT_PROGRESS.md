@@ -23,6 +23,7 @@ stays focused.
 - Alembic migration setup
 - `companies` table
 - `contacts` table
+- `follow_up_reminders` table
 - `job_applications` table
 - `job_applications.company_id` foreign key
 - `job_applications.contact_id` optional foreign key
@@ -31,6 +32,9 @@ stays focused.
 - `GET /applications/{application_id}`
 - `PATCH /applications/{application_id}`
 - `DELETE /applications/{application_id}`
+- `POST /applications/{application_id}/follow-up-reminders`
+- `GET /applications/{application_id}/follow-up-reminders`
+- `PATCH /applications/{application_id}/follow-up-reminders/{reminder_id}`
 - Filter applications by `status`
 - Filter applications by `company`
 - Filter applications by `follow_up_before`
@@ -63,28 +67,31 @@ stays focused.
   - applications can link to an optional contact
   - existing application endpoints accept and return optional `contact_name` and `contact_email`
   - contact creation and relinking covered by tests
+- First-class follow-up reminders added:
+  - reminders belong to applications
+  - reminders track `reminder_date`, optional `note`, and `completed`
+  - existing `follow_up_date` field remains in place
+  - nested create, list, and complete endpoints covered by tests
 
 ## Current Slice
 
-Contact table normalization:
+Follow-up reminder records:
 
-- Added contact persistence without adding contact CRUD endpoints yet
-- Linked contacts to companies and applications
-- Preserved existing application create/list/get/update/delete behavior
-- Kept the application API as the main workflow surface
+- Added durable reminder records without background jobs or notifications
+- Preserved existing application CRUD and `follow_up_date` behavior
+- Kept reminder API nested under applications
 
 ## Next
 
-- Add follow-up reminder records
-- Link reminders to applications
-- Keep the existing `follow_up_date` field working during the migration
-- Add tests before schema/API changes
+- Add a weekly stats endpoint
+- Count applications, interviews, rejections, offers, and follow-ups due
+- Keep the endpoint read-only
+- Add tests before route changes
 
 ## Later Production Slices
 
 - Frontend
 - Authentication
-- Weekly stats
 - CSV export
 - Structured logging and request IDs
 - Production deployment

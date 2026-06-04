@@ -454,6 +454,76 @@ def test_read_status_history_for_missing_application_returns_404(client):
     assert response.json() == {"detail": "Application not found"}
 
 
+def test_create_follow_up_reminder_for_application(client):
+    created = create_application(client)
+
+    response = client.post(
+        f"/applications/{created['id']}/follow-up-reminders",
+        json={"reminder_date": "2026-06-18", "note": "Send polite follow-up."},
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["id"] == 1
+    assert data["application_id"] == created["id"]
+    assert data["reminder_date"] == "2026-06-18"
+    assert data["note"] == "Send polite follow-up."
+    assert data["completed"] is False
+    assert data["created_at"] is not None
+    assert data["updated_at"] is not None
+
+
+def test_list_follow_up_reminders_returns_only_application_reminders(client):
+    first = create_application(client, company="Atlassian")
+    second = create_application(client, company="Canva")
+    client.post(
+        f"/applications/{first['id']}/follow-up-reminders",
+        json={"reminder_date": "2026-06-18", "note": "Follow up with Atlassian."},
+    )
+    client.post(
+        f"/applications/{second['id']}/follow-up-reminders",
+        json={"reminder_date": "2026-06-19", "note": "Follow up with Canva."},
+    )
+
+    response = client.get(f"/applications/{first['id']}/follow-up-reminders")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["application_id"] == first["id"]
+    assert data[0]["note"] == "Follow up with Atlassian."
+
+
+def test_create_follow_up_reminder_for_missing_application_returns_404(client):
+    response = client.post(
+        "/applications/999/follow-up-reminders",
+        json={"reminder_date": "2026-06-18", "note": "Send polite follow-up."},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Application not found"}
+
+
+def test_mark_follow_up_reminder_completed(client):
+    created = create_application(client)
+    reminder_response = client.post(
+        f"/applications/{created['id']}/follow-up-reminders",
+        json={"reminder_date": "2026-06-18", "note": "Send polite follow-up."},
+    )
+
+    response = client.patch(
+        f"/applications/{created['id']}/follow-up-reminders/"
+        f"{reminder_response.json()['id']}",
+        json={"completed": True},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == reminder_response.json()["id"]
+    assert data["application_id"] == created["id"]
+    assert data["completed"] is True
+
+
 def test_update_application_without_status_change_does_not_create_history(client, db_session):
     created = create_application(client, status="applied", notes="Initial note.")
 

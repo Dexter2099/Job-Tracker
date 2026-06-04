@@ -11,9 +11,13 @@ from app.models import (
     ApplicationStatusHistory,
     Company,
     Contact,
+    FollowUpReminder,
     JobApplication,
 )
 from app.schemas import (
+    FollowUpReminderCreate,
+    FollowUpReminderRead,
+    FollowUpReminderUpdate,
     JobApplicationCreate,
     JobApplicationRead,
     JobApplicationUpdate,
@@ -200,6 +204,86 @@ def get_application_status_history(
         )
     )
     return db.execute(query).scalars().all()
+
+
+@router.post(
+    "/{application_id}/follow-up-reminders",
+    response_model=FollowUpReminderRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_follow_up_reminder(
+    application_id: int,
+    reminder: FollowUpReminderCreate,
+    db: Session = Depends(get_db),
+) -> FollowUpReminder:
+    application = db.get(JobApplication, application_id)
+    if application is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found",
+        )
+
+    db_reminder = FollowUpReminder(
+        application_id=application_id,
+        **reminder.model_dump(),
+    )
+    db.add(db_reminder)
+    db.commit()
+    db.refresh(db_reminder)
+    return db_reminder
+
+
+@router.get(
+    "/{application_id}/follow-up-reminders",
+    response_model=list[FollowUpReminderRead],
+)
+def list_follow_up_reminders(
+    application_id: int,
+    db: Session = Depends(get_db),
+) -> list[FollowUpReminder]:
+    application = db.get(JobApplication, application_id)
+    if application is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found",
+        )
+
+    query = (
+        select(FollowUpReminder)
+        .where(FollowUpReminder.application_id == application_id)
+        .order_by(FollowUpReminder.reminder_date.asc(), FollowUpReminder.id.asc())
+    )
+    return db.execute(query).scalars().all()
+
+
+@router.patch(
+    "/{application_id}/follow-up-reminders/{reminder_id}",
+    response_model=FollowUpReminderRead,
+)
+def update_follow_up_reminder(
+    application_id: int,
+    reminder_id: int,
+    reminder_update: FollowUpReminderUpdate,
+    db: Session = Depends(get_db),
+) -> FollowUpReminder:
+    application = db.get(JobApplication, application_id)
+    if application is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found",
+        )
+
+    reminder = db.get(FollowUpReminder, reminder_id)
+    if reminder is None or reminder.application_id != application_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Follow-up reminder not found",
+        )
+
+    reminder.completed = reminder_update.completed
+    db.commit()
+    db.refresh(reminder)
+    return reminder
 
 
 @router.patch("/{application_id}", response_model=JobApplicationRead)

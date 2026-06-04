@@ -1,7 +1,7 @@
 from datetime import UTC, date, datetime
 from enum import StrEnum
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, String, Text, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -128,6 +128,10 @@ class JobApplication(Base):
         back_populates="application",
         cascade="all, delete-orphan",
     )
+    follow_up_reminders: Mapped[list["FollowUpReminder"]] = relationship(
+        back_populates="application",
+        cascade="all, delete-orphan",
+    )
     company_record: Mapped[Company] = relationship(back_populates="applications")
     contact: Mapped[Contact | None] = relationship(back_populates="applications")
 
@@ -155,3 +159,39 @@ class ApplicationStatusHistory(Base):
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     application: Mapped[JobApplication] = relationship(back_populates="status_history")
+
+
+class FollowUpReminder(Base):
+    __tablename__ = "follow_up_reminders"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    application_id: Mapped[int] = mapped_column(
+        ForeignKey("job_applications.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    reminder_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    completed: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    application: Mapped[JobApplication] = relationship(
+        back_populates="follow_up_reminders"
+    )
