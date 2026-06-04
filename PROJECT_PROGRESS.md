@@ -1,8 +1,9 @@
 # Project Progress
 
-This file tracks the Job Tracker API MVP so the project stays focused.
+This file tracks the Job Tracker API production-readiness path so the project
+stays focused.
 
-## MVP Scope
+## Current Baseline
 
 - FastAPI backend
 - PostgreSQL persistence
@@ -41,26 +42,39 @@ This file tracks the Job Tracker API MVP so the project stays focused.
 - README clone-to-running setup documented
 - README example responses documented
 - Interview explanation documented
+- Swagger/API screenshot added for portfolio polish
+- Production-readiness roadmap defined
+- Baseline verified on 2026-06-04:
+  - `python -m pytest -v` passed locally
+  - `docker compose up --build -d` started API and PostgreSQL
+  - Alembic migrations applied against a temporary clean PostgreSQL database
+  - running Docker API returned `{"status": "ok"}` from `/health`
 
 ## Current Slice
 
-Final README and Docker polish:
+Production readiness baseline:
 
-- Verified `docker compose up --build`
-- Verified migrations against Docker PostgreSQL
-- Verified health, create, and update through the running API
-- Added clone-to-running setup steps
-- Added example responses
-- Added interview explanation
+- Confirmed current API/test/Docker/migration baseline is healthy
+- Confirmed this slice started from a clean branch against `origin/main`
+- Next code slice should improve the domain model without widening scope
 
 ## Next
 
-- Add Swagger/API screenshots for portfolio polish
+- Add a first-class `companies` table
+- Link job applications to companies with a foreign key
+- Preserve existing application API behavior during the migration
+- Add tests before schema/API changes
 
-## Later, Not MVP
+## Later Production Slices
 
 - Frontend
 - Authentication
+- Contacts/recruiters
+- Weekly stats
+- CSV export
+- Structured logging and request IDs
+- Production deployment
+- Role-based access
 - AI matching
 - Email integration
 - Web scraping
