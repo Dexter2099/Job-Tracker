@@ -93,6 +93,16 @@ Run database migrations:
 alembic upgrade head
 ```
 
+Seed local demo data:
+
+```powershell
+python scripts/seed_data.py
+```
+
+The seed script creates a small fixed demo dataset for Swagger walkthroughs,
+weekly stats, reminders, and CSV export. It is safe to run more than once:
+known seed records are skipped instead of duplicated.
+
 ## Docker
 
 Run the API and PostgreSQL:

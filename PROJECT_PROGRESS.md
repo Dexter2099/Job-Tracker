@@ -88,26 +88,29 @@ stays focused.
   - handled API errors return an `error` object with code, message, details, and request ID
   - HTTP errors, validation errors, and unhandled exceptions have dedicated handlers
   - existing status codes and successful response bodies are preserved
+- Seed data script added:
+  - `python scripts/seed_data.py` creates realistic local demo data
+  - fixed sample records are skipped on repeated runs to avoid uncontrolled duplicates
+  - sample companies, contacts, applications, status history, and reminders are covered by tests
 
 ## Current Slice
 
-Standardized error responses:
+Seed data script:
 
-- Added small FastAPI exception handlers
-- Wrapped handled errors without rewriting routers
-- Kept request ID headers and error body request IDs aligned
+- Added explicit local demo records
+- Kept seeding out of app startup
+- Preserved schema and API response contracts
 
 ## Next
 
-- Add a seed data script
-- Keep seed data local and explicit
-- Do not change the database schema
+- Deployment prep
+- Keep auth as the alternative next step for production realism
+- Recommendation: choose deployment prep first for interview/demo readiness
 
 ## Later Production Slices
 
 - Frontend
 - Authentication
-- Seed data script
 - Production deployment
 - Role-based access
 - AI matching
