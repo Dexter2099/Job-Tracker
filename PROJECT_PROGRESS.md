@@ -92,26 +92,29 @@ stays focused.
   - `python scripts/seed_data.py` creates realistic local demo data
   - fixed sample records are skipped on repeated runs to avoid uncontrolled duplicates
   - sample companies, contacts, applications, status history, and reminders are covered by tests
+- DB-aware readiness endpoint added:
+  - `GET /health` still returns the unchanged process health response
+  - `GET /ready` verifies database connectivity with a simple readiness query
+  - database readiness failures return a safe 503 response without internal details
 
 ## Current Slice
 
-Seed data script:
+DB-aware readiness endpoint:
 
-- Added explicit local demo records
-- Kept seeding out of app startup
-- Preserved schema and API response contracts
+- Kept `/health` unchanged
+- Added `/ready` for database-backed readiness checks
+- Skipped deployment config to keep the project at $0
 
 ## Next
 
-- Deployment prep
-- Keep auth as the alternative next step for production realism
-- Recommendation: choose deployment prep first for interview/demo readiness
+- README/architecture polish
+- Then stop and use the project in applications
+- Keep auth as the later production-realism path if it is chosen deliberately
 
 ## Later Production Slices
 
 - Frontend
 - Authentication
-- Production deployment
 - Role-based access
 - AI matching
 - Email integration

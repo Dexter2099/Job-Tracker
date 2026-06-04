@@ -137,6 +137,31 @@ Expected response:
 }
 ```
 
+## Operational Endpoints
+
+`GET /health` checks that the API process is alive.
+
+`GET /ready` checks that the API can connect to the database with a simple
+readiness query.
+
+Ready response:
+
+```json
+{
+  "status": "ready",
+  "database": "ok"
+}
+```
+
+Not ready response:
+
+```json
+{
+  "status": "not_ready",
+  "database": "error"
+}
+```
+
 ## Production Behavior
 
 Every response includes an `X-Request-ID` header. If the client sends
@@ -168,6 +193,7 @@ Handled errors use a consistent response shape:
 | Method | Endpoint | Description |
 | --- | --- | --- |
 | `GET` | `/health` | Check API health |
+| `GET` | `/ready` | Check database readiness |
 | `POST` | `/applications` | Create a job application |
 | `GET` | `/applications` | List job applications |
 | `GET` | `/applications/export.csv` | Export job applications as CSV |
