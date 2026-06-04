@@ -14,7 +14,7 @@ from app.main import app
 def reset_postgres_database(db: Session) -> None:
     db.execute(
         text(
-            "TRUNCATE TABLE application_status_history, job_applications "
+            "TRUNCATE TABLE application_status_history, job_applications, companies "
             "RESTART IDENTITY CASCADE"
         )
     )

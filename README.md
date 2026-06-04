@@ -2,11 +2,11 @@
 
 [![Tests](https://github.com/Dexter2099/Job-Tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/Dexter2099/Job-Tracker/actions/workflows/tests.yml)
 
-A FastAPI backend for tracking job applications, interview stages, notes, and follow-up dates.
+A FastAPI backend for tracking job applications, companies, interview stages, notes, and follow-up dates.
 
 ## Overview
 
-Job Tracker API lets a user manage job applications through REST endpoints. The API validates request and response data with Pydantic, persists application data in PostgreSQL through SQLAlchemy models, and manages schema changes with Alembic migrations.
+Job Tracker API lets a user manage job applications through REST endpoints. The API validates request and response data with Pydantic, persists application and company data in PostgreSQL through SQLAlchemy models, and manages schema changes with Alembic migrations.
 
 ## Tech Stack
 
@@ -22,6 +22,7 @@ Job Tracker API lets a user manage job applications through REST endpoints. The 
 
 - Create, read, update, and delete job applications
 - Track company, role, location, application status, notes, and follow-up date
+- Store companies in a first-class table linked from job applications
 - Filter applications by status, company, and follow-up date
 - Store status changes over time in a status history table
 - Add notes to each application
@@ -36,10 +37,15 @@ Client
   -> FastAPI route
   -> Pydantic schema validation
   -> SQLAlchemy model/session
-  -> PostgreSQL
+  -> PostgreSQL tables
+       - companies
+       - job_applications
+       - application_status_history
 ```
 
-Alembic tracks database migrations, and GitHub Actions runs the pytest suite on pushes and pull requests.
+Alembic tracks database migrations, including the `companies` table and the
+`job_applications.company_id` foreign key. GitHub Actions runs the pytest suite
+on pushes and pull requests.
 
 ## Local Development
 
@@ -183,6 +189,10 @@ Status history is returned newest first.
 ```text
 POST /applications
 ```
+
+The public API still accepts a `company` string for a job application. Internally,
+the API creates or reuses a matching row in `companies` and links the application
+with `job_applications.company_id`.
 
 Example request:
 

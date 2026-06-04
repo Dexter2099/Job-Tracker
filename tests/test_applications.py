@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.models import ApplicationStatusHistory
+from app.models import ApplicationStatusHistory, Company, JobApplication
 
 
 def create_application(client, **overrides):
@@ -31,6 +31,16 @@ def test_create_application(client):
     assert data["follow_up_date"] == str(date(2026, 6, 15))
     assert data["created_at"] is not None
     assert data["updated_at"] is not None
+
+
+def test_create_application_links_to_company_record(client, db_session):
+    data = create_application(client, company="Atlassian")
+
+    company = db_session.query(Company).one()
+    application = db_session.get(JobApplication, data["id"])
+
+    assert company.name == "Atlassian"
+    assert application.company_id == company.id
 
 
 def test_list_applications(client):
@@ -290,6 +300,22 @@ def test_update_application(client):
     assert data["notes"] == "Phone screen booked."
     assert data["follow_up_date"] == "2026-06-20"
     assert data["company"] == "Atlassian"
+
+
+def test_update_application_relinks_company_record(client, db_session):
+    created = create_application(client, company="Atlassian")
+
+    response = client.patch(
+        f"/applications/{created['id']}",
+        json={"company": "Canva"},
+    )
+
+    application = db_session.get(JobApplication, created["id"])
+    company = db_session.query(Company).filter_by(name="Canva").one()
+
+    assert response.status_code == 200
+    assert response.json()["company"] == "Canva"
+    assert application.company_id == company.id
 
 
 def test_update_missing_application_returns_404(client):

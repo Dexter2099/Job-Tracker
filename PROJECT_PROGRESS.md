@@ -21,7 +21,9 @@ stays focused.
 - Docker Compose PostgreSQL setup
 - SQLAlchemy database connection
 - Alembic migration setup
+- `companies` table
 - `job_applications` table
+- `job_applications.company_id` foreign key
 - `POST /applications`
 - `GET /applications`
 - `GET /applications/{application_id}`
@@ -49,19 +51,25 @@ stays focused.
   - `docker compose up --build -d` started API and PostgreSQL
   - Alembic migrations applied against a temporary clean PostgreSQL database
   - running Docker API returned `{"status": "ok"}` from `/health`
+- First-class company model added:
+  - applications create or reuse linked `companies` rows
+  - application company updates relink `job_applications.company_id`
+  - existing public application API contract still accepts and returns `company`
+  - local SQLite tests and PostgreSQL-backed migration/test path verified
 
 ## Current Slice
 
-Production readiness baseline:
+Company table normalization:
 
-- Confirmed current API/test/Docker/migration baseline is healthy
-- Confirmed this slice started from a clean branch against `origin/main`
-- Next code slice should improve the domain model without widening scope
+- Added company persistence without adding company CRUD endpoints yet
+- Preserved existing application create/list/get/update/delete behavior
+- Kept company search on the existing application list API
 
 ## Next
 
-- Add a first-class `companies` table
-- Link job applications to companies with a foreign key
+- Add a first-class `contacts` / recruiters table
+- Link contacts to companies
+- Link applications to an optional contact
 - Preserve existing application API behavior during the migration
 - Add tests before schema/API changes
 
@@ -69,7 +77,6 @@ Production readiness baseline:
 
 - Frontend
 - Authentication
-- Contacts/recruiters
 - Weekly stats
 - CSV export
 - Structured logging and request IDs

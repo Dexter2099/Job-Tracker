@@ -6,7 +6,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import ApplicationStatus, ApplicationStatusHistory, JobApplication
+from app.models import (
+    ApplicationStatus,
+    ApplicationStatusHistory,
+    Company,
+    JobApplication,
+)
 from app.schemas import (
     JobApplicationCreate,
     JobApplicationRead,
@@ -16,6 +21,17 @@ from app.schemas import (
 
 
 router = APIRouter(prefix="/applications", tags=["applications"])
+
+
+def get_or_create_company(db: Session, name: str) -> Company:
+    company = db.execute(select(Company).where(Company.name == name)).scalar_one_or_none()
+    if company is not None:
+        return company
+
+    company = Company(name=name)
+    db.add(company)
+    db.flush()
+    return company
 
 
 @router.get("", response_model=list[JobApplicationRead])
@@ -107,6 +123,9 @@ def create_application(
     if application_data["job_url"] is not None:
         application_data["job_url"] = str(application_data["job_url"])
 
+    company = get_or_create_company(db, application_data["company"])
+    application_data["company_id"] = company.id
+
     db_application = JobApplication(**application_data)
     db.add(db_application)
     db.commit()
@@ -168,6 +187,10 @@ def update_application(
     update_data = application_update.model_dump(exclude_unset=True)
     if update_data.get("job_url") is not None:
         update_data["job_url"] = str(update_data["job_url"])
+
+    if "company" in update_data:
+        company = get_or_create_company(db, update_data["company"])
+        update_data["company_id"] = company.id
 
     old_status = application.status
     new_status = update_data.get("status")
