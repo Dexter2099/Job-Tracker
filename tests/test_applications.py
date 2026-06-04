@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.models import StatusHistory
+from app.models import ApplicationStatusHistory
 
 
 def create_application(client, **overrides):
@@ -310,6 +310,13 @@ def test_update_application_rejects_invalid_status(client):
     assert response.status_code == 422
 
 
+def test_status_history_model_uses_application_status_history_table():
+    assert ApplicationStatusHistory.__tablename__ == "application_status_history"
+    assert ApplicationStatusHistory.__table__.c.old_status.nullable is True
+    assert str(ApplicationStatusHistory.__table__.c.old_status.type) == "VARCHAR(50)"
+    assert str(ApplicationStatusHistory.__table__.c.new_status.type) == "VARCHAR(50)"
+
+
 def test_update_application_status_creates_history_record(client, db_session):
     created = create_application(client, status="applied", notes="Initial note.")
 
@@ -318,7 +325,7 @@ def test_update_application_status_creates_history_record(client, db_session):
         json={"status": "interview", "notes": "Phone screen booked."},
     )
 
-    history_records = db_session.query(StatusHistory).all()
+    history_records = db_session.query(ApplicationStatusHistory).all()
     assert response.status_code == 200
     assert len(history_records) == 1
     assert history_records[0].application_id == created["id"]
@@ -331,22 +338,30 @@ def test_update_application_status_creates_history_record(client, db_session):
 def test_read_status_history_for_application(client):
     created = create_application(client, status="applied", notes="Initial note.")
 
-    update_response = client.patch(
+    first_update_response = client.patch(
         f"/applications/{created['id']}",
         json={"status": "interview", "notes": "Phone screen booked."},
     )
+    second_update_response = client.patch(
+        f"/applications/{created['id']}",
+        json={"status": "offer", "notes": "Offer received."},
+    )
     response = client.get(f"/applications/{created['id']}/status-history")
 
-    assert update_response.status_code == 200
+    assert first_update_response.status_code == 200
+    assert second_update_response.status_code == 200
     assert response.status_code == 200
     data = response.json()
-    assert len(data) == 1
-    assert data[0]["id"] == 1
+    assert len(data) == 2
+    assert data[0]["id"] == 2
     assert data[0]["application_id"] == created["id"]
-    assert data[0]["old_status"] == "applied"
-    assert data[0]["new_status"] == "interview"
+    assert data[0]["old_status"] == "interview"
+    assert data[0]["new_status"] == "offer"
     assert data[0]["changed_at"] is not None
-    assert data[0]["note"] == "Phone screen booked."
+    assert data[0]["note"] == "Offer received."
+    assert data[1]["id"] == 1
+    assert data[1]["old_status"] == "applied"
+    assert data[1]["new_status"] == "interview"
 
 
 def test_read_status_history_returns_empty_list_without_status_changes(client):
@@ -373,7 +388,7 @@ def test_update_application_without_status_change_does_not_create_history(client
         json={"notes": "Updated note only."},
     )
 
-    history_records = db_session.query(StatusHistory).all()
+    history_records = db_session.query(ApplicationStatusHistory).all()
     assert response.status_code == 200
     assert history_records == []
 
@@ -386,7 +401,7 @@ def test_update_application_with_same_status_does_not_create_history(client, db_
         json={"status": "applied", "notes": "Status remains applied."},
     )
 
-    history_records = db_session.query(StatusHistory).all()
+    history_records = db_session.query(ApplicationStatusHistory).all()
     assert response.status_code == 200
     assert history_records == []
 
@@ -400,7 +415,7 @@ def test_delete_application_removes_status_history(client, db_session):
 
     delete_response = client.delete(f"/applications/{created['id']}")
 
-    history_records = db_session.query(StatusHistory).all()
+    history_records = db_session.query(ApplicationStatusHistory).all()
     assert update_response.status_code == 200
     assert delete_response.status_code == 204
     assert history_records == []

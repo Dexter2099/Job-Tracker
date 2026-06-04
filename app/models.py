@@ -1,10 +1,14 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from enum import StrEnum
 
 from sqlalchemy import Date, DateTime, Enum, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+
+
+def utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
 class ApplicationStatus(StrEnum):
@@ -49,14 +53,14 @@ class JobApplication(Base):
         onupdate=func.now(),
         nullable=False,
     )
-    status_history: Mapped[list["StatusHistory"]] = relationship(
+    status_history: Mapped[list["ApplicationStatusHistory"]] = relationship(
         back_populates="application",
         cascade="all, delete-orphan",
     )
 
 
-class StatusHistory(Base):
-    __tablename__ = "status_history"
+class ApplicationStatusHistory(Base):
+    __tablename__ = "application_status_history"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     application_id: Mapped[int] = mapped_column(
@@ -64,16 +68,14 @@ class StatusHistory(Base):
         nullable=False,
         index=True,
     )
-    old_status: Mapped[ApplicationStatus] = mapped_column(
-        Enum(ApplicationStatus, name="application_status"),
-        nullable=False,
-    )
-    new_status: Mapped[ApplicationStatus] = mapped_column(
-        Enum(ApplicationStatus, name="application_status"),
+    old_status: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    new_status: Mapped[str] = mapped_column(
+        String(50),
         nullable=False,
     )
     changed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        default=utc_now,
         server_default=func.now(),
         nullable=False,
     )

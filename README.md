@@ -166,6 +166,18 @@ defaults to `0`.
 GET /applications/{id}
 ```
 
+### Status History
+
+When an application's `status` changes, the API stores a row in
+`application_status_history` with the previous status, new status, change
+timestamp, and the update note when one is provided.
+
+```text
+GET /applications/{id}/status-history
+```
+
+Status history is returned newest first.
+
 ### Create Application
 
 ```text

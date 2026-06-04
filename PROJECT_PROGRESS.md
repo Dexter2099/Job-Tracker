@@ -30,7 +30,7 @@ This file tracks the Job Tracker API MVP so the project stays focused.
 - Filter applications by `company`
 - Filter applications by `follow_up_before`
 - Filter applications needing follow-up by date
-- `status_history` table
+- `application_status_history` table
 - Automatic status history record when application status changes
 - API endpoint to read status history
 - Alembic status-history migration verified against Docker PostgreSQL

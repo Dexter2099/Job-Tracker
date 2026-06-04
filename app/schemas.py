@@ -52,8 +52,8 @@ class JobApplicationRead(BaseModel):
 class StatusHistoryRead(BaseModel):
     id: int
     application_id: int
-    old_status: ApplicationStatus
-    new_status: ApplicationStatus
+    old_status: str | None
+    new_status: str
     changed_at: datetime
     note: str | None
 

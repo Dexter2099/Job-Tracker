@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import ApplicationStatus, JobApplication, StatusHistory
+from app.models import ApplicationStatus, ApplicationStatusHistory, JobApplication
 from app.schemas import (
     JobApplicationCreate,
     JobApplicationRead,
@@ -133,7 +133,7 @@ def get_application(
 def get_application_status_history(
     application_id: int,
     db: Session = Depends(get_db),
-) -> list[StatusHistory]:
+) -> list[ApplicationStatusHistory]:
     application = db.get(JobApplication, application_id)
     if application is None:
         raise HTTPException(
@@ -142,9 +142,12 @@ def get_application_status_history(
         )
 
     query = (
-        select(StatusHistory)
-        .where(StatusHistory.application_id == application_id)
-        .order_by(StatusHistory.changed_at.asc(), StatusHistory.id.asc())
+        select(ApplicationStatusHistory)
+        .where(ApplicationStatusHistory.application_id == application_id)
+        .order_by(
+            ApplicationStatusHistory.changed_at.desc(),
+            ApplicationStatusHistory.id.desc(),
+        )
     )
     return db.execute(query).scalars().all()
 
@@ -174,10 +177,10 @@ def update_application(
 
     if new_status is not None and new_status != old_status:
         db.add(
-            StatusHistory(
+            ApplicationStatusHistory(
                 application_id=application.id,
-                old_status=old_status,
-                new_status=new_status,
+                old_status=str(old_status),
+                new_status=str(new_status),
                 note=update_data.get("notes"),
             )
         )
