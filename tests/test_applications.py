@@ -230,6 +230,47 @@ def test_filter_applications_by_follow_up_before_excludes_empty_dates(client):
     assert data[0]["company"] == "Atlassian"
 
 
+def test_filter_applications_needing_follow_up_by_date(client):
+    create_application(client, company="Atlassian", follow_up_date="2026-06-10")
+    create_application(client, company="Canva", follow_up_date="2026-06-15")
+    create_application(client, company="Google", follow_up_date="2026-06-20")
+    create_application(client, company="Microsoft", follow_up_date=None)
+
+    response = client.get("/applications?needs_follow_up_by=2026-06-15")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert {application["company"] for application in data} == {"Atlassian", "Canva"}
+
+
+def test_filter_applications_needing_follow_up_combines_with_status(client):
+    create_application(
+        client,
+        company="Atlassian",
+        status="applied",
+        follow_up_date="2026-06-10",
+    )
+    create_application(
+        client,
+        company="Canva",
+        status="interview",
+        follow_up_date="2026-06-10",
+    )
+    create_application(
+        client,
+        company="Google",
+        status="applied",
+        follow_up_date="2026-06-20",
+    )
+
+    response = client.get("/applications?status=applied&needs_follow_up_by=2026-06-15")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["company"] == "Atlassian"
+
+
 def test_update_application(client):
     created = create_application(client, status="applied", notes="Initial note.")
 

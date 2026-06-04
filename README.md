@@ -144,7 +144,11 @@ Supported filters:
 GET /applications?status=interview
 GET /applications?company=Atlassian
 GET /applications?follow_up_before=2026-06-15
+GET /applications?needs_follow_up_by=2026-06-15
 ```
+
+`needs_follow_up_by` returns applications with a follow-up date due on or before
+the supplied date.
 
 Pagination:
 

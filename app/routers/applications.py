@@ -28,6 +28,7 @@ def list_applications(
     follow_up_date_from: date | None = None,
     follow_up_date_to: date | None = None,
     follow_up_before: date | None = None,
+    needs_follow_up_by: date | None = None,
     sort: Literal[
         "applied_date_desc",
         "applied_date_asc",
@@ -65,6 +66,12 @@ def list_applications(
 
     if follow_up_before is not None:
         query = query.where(JobApplication.follow_up_date <= follow_up_before)
+
+    if needs_follow_up_by is not None:
+        query = query.where(
+            JobApplication.follow_up_date.is_not(None),
+            JobApplication.follow_up_date <= needs_follow_up_by,
+        )
 
     sort_options = {
         "applied_date_desc": (
