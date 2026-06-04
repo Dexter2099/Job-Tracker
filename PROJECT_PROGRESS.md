@@ -80,26 +80,30 @@ stays focused.
   - `GET /applications/export.csv` returns application rows as downloadable CSV
   - export supports status, company, role, applied date, and follow-up date filters
   - endpoint is read-only and uses the standard library CSV writer
+- Request ID middleware and structured request logging added:
+  - every response includes `X-Request-ID`
+  - incoming `X-Request-ID` values are reused, otherwise UUID4 IDs are generated
+  - each request emits one JSON log line with method, path, status code, duration, and request ID
 
 ## Current Slice
 
-Application CSV export:
+Request IDs and structured request logging:
 
-- Added a small read-only CSV endpoint
-- Preserved existing JSON list endpoint behavior
-- Kept export scoped to job application rows
+- Added small app-level middleware
+- Preserved existing response bodies
+- Kept logging on the Python standard library with no vendor integrations
 
 ## Next
 
-- Add structured logging and request IDs
-- Keep logging middleware small
-- Preserve existing response contracts
+- Add standardized error responses
+- Keep existing status codes stable
+- Preserve existing successful response contracts
 
 ## Later Production Slices
 
 - Frontend
 - Authentication
-- Structured logging and request IDs
+- Standardized error responses
 - Production deployment
 - Role-based access
 - AI matching

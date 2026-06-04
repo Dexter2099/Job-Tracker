@@ -27,6 +27,7 @@ Job Tracker API lets a user manage job applications through REST endpoints. The 
 - Store first-class follow-up reminder records linked to applications
 - Return weekly job-search statistics
 - Export job applications as CSV
+- Add request IDs to responses and structured request logs
 - Filter applications by status, company, and follow-up date
 - Store status changes over time in a status history table
 - Add notes to each application
@@ -125,6 +126,13 @@ Expected response:
   "status": "ok"
 }
 ```
+
+## Production Behavior
+
+Every response includes an `X-Request-ID` header. If the client sends
+`X-Request-ID`, the API reuses it; otherwise it generates a UUID4 value. Each
+request also emits one JSON log line through the `job_tracker.requests` logger
+with `request_id`, `method`, `path`, `status_code`, and `duration_ms`.
 
 ## Screenshots
 
