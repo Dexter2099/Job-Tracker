@@ -25,6 +25,7 @@ Job Tracker API lets a user manage job applications through REST endpoints. The 
 - Store companies in a first-class table linked from job applications
 - Store recruiter/contact records linked to companies and applications
 - Store first-class follow-up reminder records linked to applications
+- Return weekly job-search statistics
 - Filter applications by status, company, and follow-up date
 - Store status changes over time in a status history table
 - Add notes to each application
@@ -144,6 +145,7 @@ Expected response:
 | `PATCH` | `/applications/{id}/follow-up-reminders/{reminder_id}` | Mark a reminder completed |
 | `PATCH` | `/applications/{id}` | Partially update a job application |
 | `DELETE` | `/applications/{id}` | Delete a job application |
+| `GET` | `/stats/weekly` | Return weekly application and follow-up statistics |
 
 ### List Applications
 
@@ -220,6 +222,28 @@ Mark a reminder completed:
 ```json
 {
   "completed": true
+}
+```
+
+### Weekly Stats
+
+```text
+GET /stats/weekly
+GET /stats/weekly?start_date=2026-06-01&end_date=2026-06-07
+```
+
+Example response:
+
+```json
+{
+  "week_start": "2026-06-01",
+  "week_end": "2026-06-07",
+  "applications_sent": 4,
+  "interviews": 1,
+  "rejections": 1,
+  "offers": 1,
+  "follow_ups_due": 2,
+  "overdue_follow_ups": 1
 }
 ```
 

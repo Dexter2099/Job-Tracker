@@ -72,21 +72,24 @@ stays focused.
   - reminders track `reminder_date`, optional `note`, and `completed`
   - existing `follow_up_date` field remains in place
   - nested create, list, and complete endpoints covered by tests
+- Weekly stats endpoint added:
+  - `GET /stats/weekly` returns applications sent, interviews, rejections, offers, follow-ups due, and overdue follow-ups
+  - optional `start_date` and `end_date` query parameters support custom ranges
+  - endpoint is read-only and covered by focused tests
 
 ## Current Slice
 
-Follow-up reminder records:
+Weekly application statistics:
 
-- Added durable reminder records without background jobs or notifications
-- Preserved existing application CRUD and `follow_up_date` behavior
-- Kept reminder API nested under applications
+- Added a small read-only stats router
+- Counts status outcomes from application status history
+- Counts incomplete follow-up reminders due in range and overdue before today
 
 ## Next
 
-- Add a weekly stats endpoint
-- Count applications, interviews, rejections, offers, and follow-ups due
-- Keep the endpoint read-only
-- Add tests before route changes
+- Add CSV export for applications
+- Keep export read-only
+- Preserve existing application and reminder behavior
 
 ## Later Production Slices
 

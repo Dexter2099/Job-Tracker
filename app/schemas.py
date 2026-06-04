@@ -85,3 +85,14 @@ class FollowUpReminderRead(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class WeeklyStatsRead(BaseModel):
+    week_start: date
+    week_end: date
+    applications_sent: int
+    interviews: int
+    rejections: int
+    offers: int
+    follow_ups_due: int
+    overdue_follow_ups: int
