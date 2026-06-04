@@ -12,6 +12,8 @@ class JobApplicationCreate(BaseModel):
     job_url: HttpUrl | None = None
     status: ApplicationStatus = ApplicationStatus.draft
     source: str | None = Field(default=None, max_length=120)
+    contact_name: str | None = Field(default=None, max_length=160)
+    contact_email: str | None = Field(default=None, max_length=255)
     salary_range: str | None = Field(default=None, max_length=120)
     notes: str | None = None
     follow_up_date: date | None = None
@@ -25,6 +27,8 @@ class JobApplicationUpdate(BaseModel):
     job_url: HttpUrl | None = None
     status: ApplicationStatus | None = None
     source: str | None = Field(default=None, max_length=120)
+    contact_name: str | None = Field(default=None, max_length=160)
+    contact_email: str | None = Field(default=None, max_length=255)
     salary_range: str | None = Field(default=None, max_length=120)
     notes: str | None = None
     follow_up_date: date | None = None
@@ -39,6 +43,8 @@ class JobApplicationRead(BaseModel):
     job_url: str | None
     status: ApplicationStatus
     source: str | None
+    contact_name: str | None
+    contact_email: str | None
     salary_range: str | None
     notes: str | None
     follow_up_date: date | None

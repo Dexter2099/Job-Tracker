@@ -10,6 +10,7 @@ from app.models import (
     ApplicationStatus,
     ApplicationStatusHistory,
     Company,
+    Contact,
     JobApplication,
 )
 from app.schemas import (
@@ -32,6 +33,28 @@ def get_or_create_company(db: Session, name: str) -> Company:
     db.add(company)
     db.flush()
     return company
+
+
+def get_or_create_contact(
+    db: Session,
+    company_id: int,
+    name: str,
+    email: str | None,
+) -> Contact:
+    query = select(Contact).where(Contact.company_id == company_id)
+    if email is not None:
+        query = query.where(Contact.email == email)
+    else:
+        query = query.where(Contact.name == name, Contact.email.is_(None))
+
+    contact = db.execute(query).scalar_one_or_none()
+    if contact is not None:
+        return contact
+
+    contact = Contact(company_id=company_id, name=name, email=email)
+    db.add(contact)
+    db.flush()
+    return contact
 
 
 @router.get("", response_model=list[JobApplicationRead])
@@ -125,6 +148,14 @@ def create_application(
 
     company = get_or_create_company(db, application_data["company"])
     application_data["company_id"] = company.id
+    if application_data["contact_name"] is not None:
+        contact = get_or_create_contact(
+            db,
+            company.id,
+            application_data["contact_name"],
+            application_data["contact_email"],
+        )
+        application_data["contact_id"] = contact.id
 
     db_application = JobApplication(**application_data)
     db.add(db_application)
@@ -191,6 +222,19 @@ def update_application(
     if "company" in update_data:
         company = get_or_create_company(db, update_data["company"])
         update_data["company_id"] = company.id
+    else:
+        company = application.company_record
+
+    if update_data.get("contact_name") is not None:
+        contact = get_or_create_contact(
+            db,
+            company.id,
+            update_data["contact_name"],
+            update_data.get("contact_email"),
+        )
+        update_data["contact_id"] = contact.id
+    elif "contact_name" in update_data:
+        update_data["contact_id"] = None
 
     old_status = application.status
     new_status = update_data.get("status")

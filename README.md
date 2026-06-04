@@ -2,11 +2,11 @@
 
 [![Tests](https://github.com/Dexter2099/Job-Tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/Dexter2099/Job-Tracker/actions/workflows/tests.yml)
 
-A FastAPI backend for tracking job applications, companies, interview stages, notes, and follow-up dates.
+A FastAPI backend for tracking job applications, companies, recruiter contacts, interview stages, notes, and follow-up dates.
 
 ## Overview
 
-Job Tracker API lets a user manage job applications through REST endpoints. The API validates request and response data with Pydantic, persists application and company data in PostgreSQL through SQLAlchemy models, and manages schema changes with Alembic migrations.
+Job Tracker API lets a user manage job applications through REST endpoints. The API validates request and response data with Pydantic, persists application, company, and contact data in PostgreSQL through SQLAlchemy models, and manages schema changes with Alembic migrations.
 
 ## Tech Stack
 
@@ -23,6 +23,7 @@ Job Tracker API lets a user manage job applications through REST endpoints. The 
 - Create, read, update, and delete job applications
 - Track company, role, location, application status, notes, and follow-up date
 - Store companies in a first-class table linked from job applications
+- Store recruiter/contact records linked to companies and applications
 - Filter applications by status, company, and follow-up date
 - Store status changes over time in a status history table
 - Add notes to each application
@@ -39,13 +40,14 @@ Client
   -> SQLAlchemy model/session
   -> PostgreSQL tables
        - companies
+       - contacts
        - job_applications
        - application_status_history
 ```
 
-Alembic tracks database migrations, including the `companies` table and the
-`job_applications.company_id` foreign key. GitHub Actions runs the pytest suite
-on pushes and pull requests.
+Alembic tracks database migrations, including the normalized `companies` and
+`contacts` tables plus application foreign keys. GitHub Actions runs the pytest
+suite on pushes and pull requests.
 
 ## Local Development
 
@@ -192,7 +194,8 @@ POST /applications
 
 The public API still accepts a `company` string for a job application. Internally,
 the API creates or reuses a matching row in `companies` and links the application
-with `job_applications.company_id`.
+with `job_applications.company_id`. Optional `contact_name` and `contact_email`
+fields create or reuse a linked `contacts` row for that company.
 
 Example request:
 
@@ -204,6 +207,8 @@ Example request:
   "job_url": "https://example.com/jobs/backend",
   "status": "applied",
   "source": "LinkedIn",
+  "contact_name": "Priya Shah",
+  "contact_email": "priya@example.com",
   "salary_range": "$80,000-$95,000",
   "notes": "Applied after tailoring resume.",
   "follow_up_date": "2026-06-15",
@@ -222,6 +227,8 @@ Example response:
   "job_url": "https://example.com/jobs/backend",
   "status": "applied",
   "source": "LinkedIn",
+  "contact_name": "Priya Shah",
+  "contact_email": "priya@example.com",
   "salary_range": "$80,000-$95,000",
   "notes": "Applied after tailoring resume.",
   "follow_up_date": "2026-06-15",
@@ -242,6 +249,8 @@ Example request:
 ```json
 {
   "status": "interview",
+  "contact_name": "Jordan Lee",
+  "contact_email": "jordan@example.com",
   "notes": "Phone screen booked.",
   "follow_up_date": "2026-06-20"
 }
@@ -258,6 +267,8 @@ Example response:
   "job_url": "https://example.com/jobs/backend",
   "status": "interview",
   "source": "LinkedIn",
+  "contact_name": "Jordan Lee",
+  "contact_email": "jordan@example.com",
   "salary_range": "$80,000-$95,000",
   "notes": "Phone screen booked.",
   "follow_up_date": "2026-06-20",

@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.models import ApplicationStatusHistory, Company, JobApplication
+from app.models import ApplicationStatusHistory, Company, Contact, JobApplication
 
 
 def create_application(client, **overrides):
@@ -41,6 +41,26 @@ def test_create_application_links_to_company_record(client, db_session):
 
     assert company.name == "Atlassian"
     assert application.company_id == company.id
+
+
+def test_create_application_links_to_contact_record(client, db_session):
+    data = create_application(
+        client,
+        company="Atlassian",
+        contact_name="Priya Shah",
+        contact_email="priya@example.com",
+    )
+
+    company = db_session.query(Company).filter_by(name="Atlassian").one()
+    contact = db_session.query(Contact).one()
+    application = db_session.get(JobApplication, data["id"])
+
+    assert data["contact_name"] == "Priya Shah"
+    assert data["contact_email"] == "priya@example.com"
+    assert contact.name == "Priya Shah"
+    assert contact.email == "priya@example.com"
+    assert contact.company_id == company.id
+    assert application.contact_id == contact.id
 
 
 def test_list_applications(client):
@@ -316,6 +336,34 @@ def test_update_application_relinks_company_record(client, db_session):
     assert response.status_code == 200
     assert response.json()["company"] == "Canva"
     assert application.company_id == company.id
+
+
+def test_update_application_relinks_contact_record(client, db_session):
+    created = create_application(
+        client,
+        company="Atlassian",
+        contact_name="Priya Shah",
+        contact_email="priya@example.com",
+    )
+
+    response = client.patch(
+        f"/applications/{created['id']}",
+        json={
+            "company": "Canva",
+            "contact_name": "Jordan Lee",
+            "contact_email": "jordan@example.com",
+        },
+    )
+
+    company = db_session.query(Company).filter_by(name="Canva").one()
+    contact = db_session.query(Contact).filter_by(email="jordan@example.com").one()
+    application = db_session.get(JobApplication, created["id"])
+
+    assert response.status_code == 200
+    assert response.json()["contact_name"] == "Jordan Lee"
+    assert response.json()["contact_email"] == "jordan@example.com"
+    assert contact.company_id == company.id
+    assert application.contact_id == contact.id
 
 
 def test_update_missing_application_returns_404(client):

@@ -22,8 +22,10 @@ stays focused.
 - SQLAlchemy database connection
 - Alembic migration setup
 - `companies` table
+- `contacts` table
 - `job_applications` table
 - `job_applications.company_id` foreign key
+- `job_applications.contact_id` optional foreign key
 - `POST /applications`
 - `GET /applications`
 - `GET /applications/{application_id}`
@@ -56,21 +58,26 @@ stays focused.
   - application company updates relink `job_applications.company_id`
   - existing public application API contract still accepts and returns `company`
   - local SQLite tests and PostgreSQL-backed migration/test path verified
+- First-class contact model added:
+  - contacts belong to companies
+  - applications can link to an optional contact
+  - existing application endpoints accept and return optional `contact_name` and `contact_email`
+  - contact creation and relinking covered by tests
 
 ## Current Slice
 
-Company table normalization:
+Contact table normalization:
 
-- Added company persistence without adding company CRUD endpoints yet
+- Added contact persistence without adding contact CRUD endpoints yet
+- Linked contacts to companies and applications
 - Preserved existing application create/list/get/update/delete behavior
-- Kept company search on the existing application list API
+- Kept the application API as the main workflow surface
 
 ## Next
 
-- Add a first-class `contacts` / recruiters table
-- Link contacts to companies
-- Link applications to an optional contact
-- Preserve existing application API behavior during the migration
+- Add follow-up reminder records
+- Link reminders to applications
+- Keep the existing `follow_up_date` field working during the migration
 - Add tests before schema/API changes
 
 ## Later Production Slices

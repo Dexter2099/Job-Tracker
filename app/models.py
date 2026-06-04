@@ -45,6 +45,40 @@ class Company(Base):
     applications: Mapped[list["JobApplication"]] = relationship(
         back_populates="company_record"
     )
+    contacts: Mapped[list["Contact"]] = relationship(back_populates="company")
+
+
+class Contact(Base):
+    __tablename__ = "contacts"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    company_id: Mapped[int] = mapped_column(
+        ForeignKey("companies.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    phone: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    role_title: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    company: Mapped[Company] = relationship(back_populates="contacts")
+    applications: Mapped[list["JobApplication"]] = relationship(
+        back_populates="contact"
+    )
 
 
 class JobApplication(Base):
@@ -57,6 +91,13 @@ class JobApplication(Base):
         nullable=False,
         index=True,
     )
+    contact_id: Mapped[int | None] = mapped_column(
+        ForeignKey("contacts.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    contact_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    contact_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role_title: Mapped[str] = mapped_column(String(160), nullable=False)
     location: Mapped[str | None] = mapped_column(String(160), nullable=True)
     job_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -88,6 +129,7 @@ class JobApplication(Base):
         cascade="all, delete-orphan",
     )
     company_record: Mapped[Company] = relationship(back_populates="applications")
+    contact: Mapped[Contact | None] = relationship(back_populates="applications")
 
 
 class ApplicationStatusHistory(Base):
