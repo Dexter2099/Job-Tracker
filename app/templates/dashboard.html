@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Job Tracker API</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Portfolio backend demo</p>
+          <h1>Job Tracker API</h1>
+          <p class="subtitle">
+            A FastAPI backend with PostgreSQL persistence for tracking job applications,
+            status changes, follow-ups, and API-ready portfolio workflows.
+          </p>
+        </div>
+        <a class="docs-link" href="/docs">Open API Docs</a>
+      </header>
+
+      <section class="status-grid" aria-label="Operational status">
+        <article class="status-card">
+          <span class="status-label">/health</span>
+          <strong>{{ health_status }}</strong>
+          <a href="/health">View endpoint</a>
+        </article>
+        <article class="status-card">
+          <span class="status-label">/ready</span>
+          <strong>{{ ready_status }}</strong>
+          <a href="/ready">View endpoint</a>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <form class="create-panel" method="post" action="/dashboard/applications">
+          <h2>Add Application</h2>
+          <label>
+            Company
+            <input name="company" type="text" placeholder="Example company" required>
+          </label>
+          <label>
+            Role
+            <input name="role_title" type="text" placeholder="Junior backend role" required>
+          </label>
+          <label>
+            Location
+            <input name="location" type="text" placeholder="Brisbane">
+          </label>
+          <label>
+            Status
+            <select name="status">
+              {% for status in statuses %}
+              <option value="{{ status.value }}" {% if status.value == "applied" %}selected{% endif %}>
+                {{ status.value.replace("_", " ").title() }}
+              </option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            Source
+            <input name="source" type="text" placeholder="LinkedIn">
+          </label>
+          <label>
+            Notes
+            <textarea name="notes" rows="3" placeholder="Applied after tailoring resume."></textarea>
+          </label>
+          <button type="submit">Create application</button>
+        </form>
+
+        <section class="list-panel">
+          <div class="list-header">
+            <div>
+              <h2>Applications</h2>
+              <p>{{ applications|length }} visible record{% if applications|length != 1 %}s{% endif %}</p>
+            </div>
+            <form class="filter-form" method="get" action="/">
+              <label>
+                Filter status
+                <select name="status" onchange="this.form.submit()">
+                  <option value="">All statuses</option>
+                  {% for status in statuses %}
+                  <option value="{{ status.value }}" {% if selected_status == status %}selected{% endif %}>
+                    {{ status.value.replace("_", " ").title() }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </label>
+            </form>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                  <th>Update</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for application in applications %}
+                <tr>
+                  <td>
+                    <strong>{{ application.company }}</strong>
+                    {% if application.source %}
+                    <span class="muted">{{ application.source }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ application.role_title }}</td>
+                  <td>{{ application.location or "Remote / TBD" }}</td>
+                  <td>
+                    <span class="pill">{{ application.status.value.replace("_", " ").title() }}</span>
+                  </td>
+                  <td>
+                    <form class="status-form" method="post" action="/dashboard/applications/{{ application.id }}/status">
+                      {% if selected_status %}
+                      <input type="hidden" name="current_filter" value="{{ selected_status.value }}">
+                      {% endif %}
+                      <select name="status" aria-label="Update status for {{ application.company }}">
+                        {% for status in statuses %}
+                        <option value="{{ status.value }}" {% if application.status == status %}selected{% endif %}>
+                          {{ status.value.replace("_", " ").title() }}
+                        </option>
+                        {% endfor %}
+                      </select>
+                      <button type="submit">Update</button>
+                    </form>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="5" class="empty-state">
+                    No applications match this filter. Add one to start the demo flow.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

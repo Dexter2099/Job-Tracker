@@ -127,6 +127,30 @@ Open the API docs:
 http://127.0.0.1:8000/docs
 ```
 
+## Demo Frontend
+
+The repo includes an intentionally thin server-rendered dashboard for portfolio
+videos. It exists only to make the FastAPI/PostgreSQL backend visible during a
+short demo; the API remains the main project surface.
+
+Run it with:
+
+```powershell
+uvicorn app.main:app --reload
+```
+
+Open the dashboard:
+
+```text
+http://127.0.0.1:8000/
+```
+
+API docs:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
 Run tests:
 
 ```powershell
