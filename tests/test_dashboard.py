@@ -1,3 +1,6 @@
+from app.models import ApplicationStatusHistory, JobApplication
+
+
 def test_dashboard_returns_html(client):
     response = client.get("/")
 
@@ -7,6 +10,13 @@ def test_dashboard_returns_html(client):
     assert "/docs" in response.text
     assert "/health" in response.text
     assert "/ready" in response.text
+
+
+def test_docs_returns_swagger_ui(client):
+    response = client.get("/docs")
+
+    assert response.status_code == 200
+    assert "Swagger UI" in response.text
 
 
 def test_dashboard_lists_applications_and_filters_by_status(client):
@@ -35,7 +45,7 @@ def test_dashboard_lists_applications_and_filters_by_status(client):
     assert "Atlassian" not in response.text
 
 
-def test_dashboard_create_and_status_update_helpers_redirect(client):
+def test_dashboard_create_and_status_update_helpers_redirect(client, db_session):
     create_response = client.post(
         "/dashboard/applications",
         data={
@@ -48,6 +58,12 @@ def test_dashboard_create_and_status_update_helpers_redirect(client):
     )
     assert create_response.status_code == 303
 
+    application = db_session.query(JobApplication).one()
+    assert application.company == "Atlassian"
+    assert application.role_title == "Junior Backend Developer"
+    assert application.location == "Brisbane"
+    assert application.status == "applied"
+
     dashboard_response = client.get("/")
     assert "Atlassian" in dashboard_response.text
     assert "applied" in dashboard_response.text
@@ -58,6 +74,12 @@ def test_dashboard_create_and_status_update_helpers_redirect(client):
         follow_redirects=False,
     )
     assert update_response.status_code == 303
+
+    db_session.refresh(application)
+    history_record = db_session.query(ApplicationStatusHistory).one()
+    assert application.status == "interview"
+    assert history_record.old_status == "applied"
+    assert history_record.new_status == "interview"
 
     filtered_response = client.get("/?status=interview")
     assert "Atlassian" in filtered_response.text

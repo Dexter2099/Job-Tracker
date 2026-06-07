@@ -85,9 +85,6 @@ def dashboard_create_application(
     role_title: Annotated[str, Form()],
     location: Annotated[str | None, Form()] = None,
     status: Annotated[ApplicationStatus, Form()] = ApplicationStatus.applied,
-    job_url: Annotated[str | None, Form()] = None,
-    source: Annotated[str | None, Form()] = None,
-    notes: Annotated[str | None, Form()] = None,
     db: Session = Depends(get_db),
 ):
     application = JobApplicationCreate(
@@ -95,9 +92,6 @@ def dashboard_create_application(
         role_title=role_title,
         location=empty_to_none(location),
         status=status,
-        job_url=empty_to_none(job_url),
-        source=empty_to_none(source),
-        notes=empty_to_none(notes),
     )
     applications.create_application(application, db)
     return dashboard_redirect()

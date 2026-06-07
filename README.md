@@ -151,6 +151,17 @@ API docs:
 http://127.0.0.1:8000/docs
 ```
 
+30-second recording script:
+
+1. Open `http://127.0.0.1:8000/` and say this is a FastAPI/PostgreSQL backend
+   with a thin dashboard only for visual demonstration.
+2. Create one application from the form and point out that it persists through
+   the same backend model path as the API.
+3. Change the status from `Applied` to `Interview`, then filter by `Interview`
+   to show the status workflow.
+4. Open `/docs`, `/health`, and `/ready` to show the API contract and operational
+   checks.
+
 Run tests:
 
 ```powershell
